@@ -5,7 +5,7 @@ CXXFLAGS= \
 		  -Wduplicated-branches -Wduplicated-cond \
 
 
-CATCH_VERSION=v1.9.6
+CATCH_VERSION=v1.9.7
 
 all: lib
 
