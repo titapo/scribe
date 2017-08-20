@@ -22,8 +22,51 @@ TEST_CASE("get nonexisting child")
 TEST_CASE("add child to node")
 {
     Node node;
-    node.addChild("name", std::unique_ptr<Entity>(new Leaf<int>(12)));
+    node.addChild("name", Entity::create<Leaf<int>>(12));
     REQUIRE(node.size() == 1);
     REQUIRE(dynamic_cast<Leaf<int>&>(node.getChild("name")).getValue() == 12);
+
+    REQUIRE(node.getEntry("name").first == "name");
+    REQUIRE(dynamic_cast<Leaf<int>&>(node.getEntry("name").second).getValue() == 12);
 }
 
+TEST_CASE("add child as a pair to node")
+{
+    Node node;
+    node.addChild(std::make_pair("name", Entity::create<Leaf<int>>(12)));
+}
+
+TEST_CASE("iterating through node")
+{
+    Node node;
+    node.addChild("a", Entity::create<Leaf<int>>(1));
+    node.addChild("b", Entity::create<Leaf<int>>(2));
+    node.addChild("c", Entity::create<Leaf<int>>(3));
+    int sum = 0;
+    for (const auto& child : node)
+    {
+        sum += dynamic_cast<Leaf<int>&>(child.second).getValue();
+    }
+
+    REQUIRE(sum == 6);
+}
+
+TEST_CASE("iterating through const node")
+{
+    const auto node = []
+    {
+        Node node;
+        node.addChild("a", Entity::create<Leaf<int>>(1));
+        node.addChild("b", Entity::create<Leaf<int>>(2));
+        node.addChild("c", Entity::create<Leaf<int>>(3));
+        return node;
+    }();
+
+    int sum = 0;
+    for (const auto& child : node)
+    {
+        sum += dynamic_cast<Leaf<int>&>(child.second).getValue();
+    }
+
+    REQUIRE(sum == 6);
+}

@@ -25,22 +25,80 @@ namespace scribe
     class Node : public Entity
     {
         public:
+            using OwnerEntry = std::pair<std::string, std::unique_ptr<Entity>>;
+            using WeakEntry = std::pair<std::string, Entity&>;
+            using container_type = std::unordered_map<std::string, std::unique_ptr<Entity>>;
+
             std::size_t size() const;
 
+            class iterator
+            {
+                public:
+                    using orig_iterator_type = typename container_type::iterator;
+
+                    iterator(orig_iterator_type orig);
+
+                    inline iterator& operator++()
+                    {
+                        orig++;
+                        return *this;
+                    }
+
+                    inline bool operator==(const iterator& rhs) const
+                    { return orig == rhs.orig; }
+                    inline bool operator!=(const iterator& rhs) const
+                    { return orig != rhs.orig; }
+                    inline WeakEntry operator*()
+                    { return WeakEntry(orig->first, *(orig->second)); }
+
+                    orig_iterator_type orig;
+            };
+
+            class const_iterator
+            {
+                public:
+                    using orig_const_iterator_type = typename container_type::const_iterator;
+
+                    const_iterator(orig_const_iterator_type orig);
+
+                    inline const_iterator& operator++()
+                    {
+                        orig++;
+                        return *this;
+                    }
+                    inline bool operator==(const const_iterator& rhs) const
+                    { return orig == rhs.orig; }
+                    inline bool operator!=(const const_iterator& rhs) const
+                    { return orig != rhs.orig; }
+                    inline WeakEntry operator*()
+                    { return WeakEntry(orig->first, *(orig->second)); }
+
+                    orig_const_iterator_type orig;
+            };
+
+            void addChild(OwnerEntry&& entry);
             void addChild(const std::string& name, std::unique_ptr<Entity> child);
 
-            Entity& getChild(const std::string& name);
+            inline iterator begin()
+            { return iterator(children.begin()); }
 
-            void processBy(EntityProcessor& processor) override
-            {
-                (void)processor;
-            }
-            void processBy(EntityProcessor& processor) const override
-            {
-                (void)processor;
-            }
+            inline const_iterator begin() const
+            { return const_iterator(children.begin()); }
+
+            inline iterator end()
+            { return iterator(children.end()); }
+
+            inline const_iterator end() const
+            { return const_iterator(children.end()); }
+
+            Entity& getChild(const std::string& name) const;
+            WeakEntry getEntry(const std::string& name) const;
+
+            void processBy(EntityProcessor& processor) override;
+            void processBy(EntityProcessor& processor) const override;
+
         private:
-            std::unordered_map<std::string, std::unique_ptr<Entity>> children;
+            container_type children;
     };
 }
 #endif
