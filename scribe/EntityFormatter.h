@@ -2,7 +2,11 @@
 #define SCRIBE_ENTITYFORMATTER_H_INCLUDED
 
 #include <scribe/EntityProcessor.h>
+#include <scribe/Leaf.h>
+#include <scribe/Node.h>
+#include <scribe/Array.h>
 #include <iostream>
+
 namespace scribe
 {
     template <typename T>
@@ -28,11 +32,13 @@ namespace scribe
                 unsigned indentationLevel{0};
             };
             explicit EntityFormatter(std::ostream& str);
+            EntityFormatter(std::ostream& str, DisplayContext context);
 
             void display(const Node::WeakEntry& entry, DisplayContext context = {});
 
             void process(const LeafBase& leaf) override;
             void process(const Node& node) override;
+            void process(const Array& array) override;
 
         private:
             std::ostream& addIndentation();

@@ -1,17 +1,16 @@
 #include <scribe/Array.h>
 #include <scribe/exception.h>
+#include <scribe/EntityProcessor.h>
 
 using namespace scribe;
 
 void Array::processBy(EntityProcessor& processor)
 {
-    (void)processor;
-    //processor.process(*this);
+    processor.process(*this);
 }
 void Array::processBy(EntityProcessor& processor) const
 {
-    (void)processor;
-    //processor.process(*this);
+    processor.process(*this);
 }
 
 std::size_t Array::size() const

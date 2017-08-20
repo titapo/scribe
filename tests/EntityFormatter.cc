@@ -2,6 +2,7 @@
 #include <tests/catch.hpp>
 #include <scribe/Leaf.h>
 #include <scribe/Node.h>
+#include <scribe/Array.h>
 #include <scribe/EntityFormatter.h>
 
 using namespace scribe;
@@ -67,4 +68,47 @@ TEST_CASE("display nested node")
     childRef.addChild("double", Entity::create<Leaf<double>>(12.34));
     node.processBy(formatter);
     REQUIRE(str.str() == "{\n  child: {\n    double: 12.34\n    string: apple\n  }\n}");
+}
+
+TEST_CASE("display empty array")
+{
+    std::ostringstream str;
+    EntityFormatter formatter(str);
+    Array array;
+    array.processBy(formatter);
+    REQUIRE(str.str() == "[\n]");
+}
+
+TEST_CASE("display non-empty array")
+{
+    std::ostringstream str;
+    EntityFormatter formatter(str);
+    Array array;
+    array.append(Entity::create<Leaf<unsigned>>(1234));
+    array.processBy(formatter);
+    REQUIRE(str.str() == "[\n  1234\n]");
+}
+
+TEST_CASE("display multi-element array")
+{
+    std::ostringstream str;
+    EntityFormatter formatter(str);
+    Array array;
+    array.append(Entity::create<Leaf<unsigned>>(1234));
+    array.append(Entity::create<Leaf<std::string>>("just a string"));
+    array.append(Entity::create<Leaf<double>>(232.4));
+    array.processBy(formatter);
+    REQUIRE(str.str() == "[\n  1234\n  just a string\n  232.4\n]");
+}
+
+TEST_CASE("display nested array")
+{
+    std::ostringstream str;
+    EntityFormatter formatter(str);
+    Array array;
+    array.append(Entity::create<Leaf<unsigned>>(1234));
+    array.append(Entity::create<Array>());
+    dynamic_cast<Array&>(array.getChild(1)).append(Entity::create<Leaf<double>>(232.4));
+    array.processBy(formatter);
+    REQUIRE(str.str() == "[\n  1234\n  [\n    232.4\n  ]\n]");
 }
