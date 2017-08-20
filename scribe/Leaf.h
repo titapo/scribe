@@ -5,8 +5,16 @@
 
 namespace scribe
 {
+    class LeafBase : public Entity
+    {
+        public:
+            void processBy(EntityProcessor& processor) override;
+            void processBy(EntityProcessor& processor) const override;
+            virtual std::ostream& toStream(std::ostream& stream) const = 0;
+    };
+
     template <typename T>
-    class Leaf : public Entity
+    class Leaf : public LeafBase
     {
         public:
             using value_type = T;
@@ -28,13 +36,9 @@ namespace scribe
                 return value;
             }
 
-            void processBy(EntityProcessor& processor) override
+            std::ostream& toStream(std::ostream& stream) const override
             {
-                (void)processor;
-            }
-            void processBy(EntityProcessor& processor) const override
-            {
-                (void)processor;
+                return stream << value;
             }
 
         private:
