@@ -1,9 +1,17 @@
 #ifndef SCRIBE_ENTITYPROCESSOR_H_INCLUDED
 #define SCRIBE_ENTITYPROCESSOR_H_INCLUDED
 
-class EntityProcessor
+#include <scribe/Leaf.h>
+#include <scribe/Node.h>
+
+namespace scribe
 {
-    public:
-};
+    class EntityProcessor
+    {
+        public:
+            virtual void process(const LeafBase& leaf) = 0;
+            virtual void process(const Node& leaf) = 0;
+    };
+}
 
 #endif
