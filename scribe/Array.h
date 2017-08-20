@@ -1,26 +1,21 @@
-#ifndef SCRIBE_NODE_H_INCLUDED
-#define SCRIBE_NODE_H_INCLUDED
+#ifndef SCRIBE_ARRAY_H_INCLUDED
+#define SCRIBE_ARRAY_H_INCLUDED
 
 #include <cstddef>
-#include <string>
-#include <memory>
-#include <unordered_map>
+#include <vector>
 
 #include <scribe/Entity.h>
-#include <scribe/exception.h>
-
-
-class EntityProcessor;
 
 namespace scribe
 {
-
-    class Node : public Entity
+    class Array : public Entity
     {
         public:
-            using OwnerEntry = std::pair<std::string, std::unique_ptr<Entity>>;
-            using WeakEntry = std::pair<std::string, Entity&>;
-            using container_type = std::unordered_map<std::string, std::unique_ptr<Entity>>;
+            using Index = unsigned;
+            using container_type = std::vector<std::unique_ptr<Entity>>;
+
+            void processBy(EntityProcessor& processor) override;
+            void processBy(EntityProcessor& processor) const override;
 
             std::size_t size() const;
 
@@ -41,8 +36,8 @@ namespace scribe
                     { return orig == rhs.orig; }
                     inline bool operator!=(const iterator& rhs) const
                     { return orig != rhs.orig; }
-                    inline WeakEntry operator*()
-                    { return WeakEntry(orig->first, *(orig->second)); }
+                    inline Entity& operator*()
+                    { return *(orig->get()); }
 
                     orig_iterator_type orig;
             };
@@ -63,36 +58,19 @@ namespace scribe
                     { return orig == rhs.orig; }
                     inline bool operator!=(const const_iterator& rhs) const
                     { return orig != rhs.orig; }
-                    inline WeakEntry operator*()
-                    { return WeakEntry(orig->first, *(orig->second)); }
+                    inline Entity& operator*()
+                    { return *(orig->get()); }
 
                     orig_const_iterator_type orig;
             };
+            inline const_iterator begin() const { return const_iterator(children.begin()); }
+            inline const_iterator end() const { return const_iterator(children.end()); }
 
-            void addChild(OwnerEntry&& entry);
-            void addChild(const std::string& name, std::unique_ptr<Entity> child);
-
-            inline iterator begin()
-            { return iterator(children.begin()); }
-
-            inline const_iterator begin() const
-            { return const_iterator(children.begin()); }
-
-            inline iterator end()
-            { return iterator(children.end()); }
-
-            inline const_iterator end() const
-            { return const_iterator(children.end()); }
-
-            Entity& getChild(const std::string& name) const;
-            WeakEntry getEntry(const std::string& name) const;
-
-            void processBy(EntityProcessor& processor) override;
-            void processBy(EntityProcessor& processor) const override;
-
+            Entity& getChild(Index index) const;
+            void append(std::unique_ptr<Entity> child);
         private:
             container_type children;
     };
 }
-#endif
 
+#endif

@@ -10,5 +10,13 @@ namespace scribe
         public:
             using std::runtime_error::runtime_error;
     };
+
+    class NoSuchChild : public ScribeException
+    {
+        public:
+            using ScribeException::ScribeException;
+    };
+
+
 }
 #endif
