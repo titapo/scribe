@@ -34,13 +34,3 @@ void Array::append(std::unique_ptr<Entity> child)
 {
     children.push_back(std::move(child));
 }
-
-Array::iterator::iterator(Array::iterator::orig_iterator_type orig)
-     : orig(orig)
-{
-}
-
-Array::const_iterator::const_iterator(Array::const_iterator::orig_const_iterator_type orig)
-    : orig(orig)
-{
-}

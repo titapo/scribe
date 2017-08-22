@@ -44,13 +44,3 @@ void Node::processBy(EntityProcessor& processor) const
 {
     processor.process(*this);
 }
-
-Node::iterator::iterator(Node::iterator::orig_iterator_type orig)
-    : orig(orig)
-{
-}
-
-Node::const_iterator::const_iterator(Node::const_iterator::orig_const_iterator_type orig)
-    : orig(orig)
-{
-}

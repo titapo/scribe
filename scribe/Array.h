@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <vector>
 
+#include <scribe/common_helpers.h>
 #include <scribe/Entity.h>
 
 namespace scribe
@@ -19,50 +20,22 @@ namespace scribe
 
             std::size_t size() const;
 
-            class iterator
+            class iterator : public iterator_adaptor_to<container_type::iterator>
             {
                 public:
-                    using orig_iterator_type = typename container_type::iterator;
-
-                    iterator(orig_iterator_type orig);
-
-                    inline iterator& operator++()
-                    {
-                        orig++;
-                        return *this;
-                    }
-
-                    inline bool operator==(const iterator& rhs) const
-                    { return orig == rhs.orig; }
-                    inline bool operator!=(const iterator& rhs) const
-                    { return orig != rhs.orig; }
+                    using iterator_adaptor_to::iterator_adaptor_to;
                     inline Entity& operator*()
                     { return *(orig->get()); }
-
-                    orig_iterator_type orig;
             };
 
-            class const_iterator
+            class const_iterator : public iterator_adaptor_to<container_type::const_iterator>
             {
                 public:
-                    using orig_const_iterator_type = typename container_type::const_iterator;
-
-                    const_iterator(orig_const_iterator_type orig);
-
-                    inline const_iterator& operator++()
-                    {
-                        orig++;
-                        return *this;
-                    }
-                    inline bool operator==(const const_iterator& rhs) const
-                    { return orig == rhs.orig; }
-                    inline bool operator!=(const const_iterator& rhs) const
-                    { return orig != rhs.orig; }
+                    using iterator_adaptor_to::iterator_adaptor_to;
                     inline Entity& operator*()
                     { return *(orig->get()); }
-
-                    orig_const_iterator_type orig;
             };
+
             inline const_iterator begin() const { return const_iterator(children.begin()); }
             inline const_iterator end() const { return const_iterator(children.end()); }
 
