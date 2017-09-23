@@ -11,10 +11,10 @@
 #include <scribe/common_helpers.h>
 
 
-class EntityProcessor;
-
 namespace scribe
 {
+
+    class EntityProcessor;
 
     class Node : public Entity
     {
