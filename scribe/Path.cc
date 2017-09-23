@@ -1,94 +1,12 @@
-#include <sstream>
 #include <scribe/Path.h>
-#include <scribe/Entity.h>
-#include <scribe/Node.h>
-#include <scribe/Array.h>
-#include <scribe/EntityProcessor.h>
+#include <sstream>
 
 using namespace scribe;
 
-namespace
+void Path::extend(ElementPtr&& element)
 {
-  class PathElementProcessor : public scribe::EntityProcessor
-  {
-    public:
-      void process(const LeafBase&) override
-      { }
-      void process(const Node&) override
-      { }
-      void process(const Array&) override
-      { }
-
-      Entity& getResult() const
-      {
-        if (!result)
-          throw ScribeException("Cannot get result!");
-
-        return *result;
-      }
-
-    protected:
-      Entity* result = nullptr;
-  };
-
-  class ChildGetterProcessor : public PathElementProcessor
-  {
-    public:
-      ChildGetterProcessor(const std::string& name)
-        : name(name)
-      {}
-
-      void process(const Node& node) override
-      {
-        result = &node.getChild(name);
-      }
-
-    private:
-      const std::string& name;
-  };
-
-  class IndexGetterProcessor : public PathElementProcessor
-  {
-    public:
-      IndexGetterProcessor(Path::Index::index_t index)
-        : index(index)
-      {}
-
-      void process(const Array& array) override
-      {
-        result = &array.getChild(index);
-      }
-
-    private:
-      const Path::Index::index_t index;
-  };
+  elements.push_back(std::move(element));
 }
-
-std::string Path::Element::toString() const
-{
-  std::stringstream str;
-  toStream(str);
-  return str.str();
-}
-
-Entity& Path::Child::evaluate(Entity& entity) const
-{
-  ChildGetterProcessor processor(name);
-  entity.processBy(processor);
-  return processor.getResult();
-}
-std::ostream& Path::Child::toStream(std::ostream& str) const
-{ return str << "." << name;}
-
-Entity& Path::Index::evaluate(Entity& entity) const
-{
-  IndexGetterProcessor processor(index);
-  entity.processBy(processor);
-  return processor.getResult();
-}
-
-std::ostream& Path::Index::toStream(std::ostream& str) const
-{ return str << "[" << index << "]";}
 
 PathTrace Path::evaluateTrace(Entity& entity) const
 {
@@ -111,28 +29,17 @@ Path::Path(Elements&& newElements)
     elements.push_back(std::move(e));
 }
 
-Path::Child::Child(const std::string& name)
-  : name(name)
-{}
-
-Path::Index::Index(Index::index_t index)
-  : index(index)
-{}
-
-
-PathTrace::PathTrace(Entity& entity)
-  : root(entity)
-{}
-
-Entity& PathTrace::getLast() const
+std::string Path::toString() const
 {
-  if (elements.empty())
-    return root;
-
-  return elements.back().second;
+  std::stringstream str;
+  toStream(str);
+  return str.str();
 }
 
-void PathTrace::extend(const Path::Element& element)
+std::ostream& Path::toStream(std::ostream& ostr) const
 {
-  emplace(element.clonePtr(), element.evaluate(getLast()));
+  for (const auto& element : elements)
+    ostr << *element;
+
+  return ostr;
 }
