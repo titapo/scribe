@@ -4,7 +4,7 @@
 
 using namespace scribe;
 
-void types::Any::validate(const Entity&)
+void types::Any::validate(const Entity&) const
 {
   return;
 }
@@ -24,7 +24,7 @@ namespace
   };
 }
 
-void types::NodeType::validate(const Entity& entity)
+void types::NodeType::validate(const Entity& entity) const
 {
   NodeValidator validator;
   entity.processBy(validator);
@@ -48,7 +48,7 @@ namespace
   };
 }
 
-void types::ArrayType::validate(const Entity& entity)
+void types::ArrayType::validate(const Entity& entity) const
 {
   ArrayValidator validator;
   entity.processBy(validator);
@@ -59,7 +59,7 @@ std::unique_ptr<Entity> types::ArrayType::instantiate()
   return Entity::create<Array>();
 }
 
-void types::LeafBaseType::validate(const Entity& entity)
+void types::LeafBaseType::validate(const Entity& entity) const
 {
   LeafBaseValidator validator;
   entity.processBy(validator);

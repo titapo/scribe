@@ -12,7 +12,7 @@ namespace scribe
   class TypeNotion
   {
     public:
-      virtual void validate(const Entity& entity) = 0;
+      virtual void validate(const Entity& entity) const = 0;
       virtual std::unique_ptr<Entity> instantiate() = 0;
       virtual ~TypeNotion() {}
   };
@@ -22,21 +22,21 @@ namespace scribe
     class Any : public TypeNotion
     {
       public:
-        void validate(const Entity& entity) override;
+        void validate(const Entity& entity) const override;
         std::unique_ptr<Entity> instantiate() override;
     };
 
     class NodeType : public TypeNotion
     {
       public:
-        void validate(const Entity& entity) override;
+        void validate(const Entity& entity) const override;
         std::unique_ptr<Entity> instantiate() override;
     };
 
     class ArrayType : public TypeNotion
     {
       public:
-        void validate(const Entity& entity) override;
+        void validate(const Entity& entity) const override;
         std::unique_ptr<Entity> instantiate() override;
     };
 
@@ -50,7 +50,7 @@ namespace scribe
     class LeafBaseType : public TypeNotion
     {
       public:
-        void validate(const Entity& entity) override;
+        void validate(const Entity& entity) const override;
         std::unique_ptr<Entity> instantiate() override;
     };
 
@@ -68,7 +68,7 @@ namespace scribe
     class LeafType : public TypeNotion
     {
       public:
-        void validate(const Entity& entity) override
+        void validate(const Entity& entity) const override
         {
           LeafValidator<T> validator;
           entity.processBy(validator);
