@@ -1,6 +1,7 @@
 #include <scribe/Array.h>
 #include <scribe/exception.h>
 #include <scribe/EntityProcessor.h>
+#include <scribe/makeString.h>
 
 using namespace scribe;
 
@@ -26,7 +27,7 @@ Entity& Array::getChild(Index index) const
     }
     catch (const std::out_of_range&)
     {
-        throw NoSuchChild("No such child");
+        throw NoSuchChild(makeString() << "No element indexed by: " << index);
     }
 }
 

@@ -16,7 +16,7 @@ TEST_CASE("get over-indexed element")
 {
     Array array;
     REQUIRE_THROWS_AS(array.getChild(2), NoSuchChild);
-    REQUIRE_THROWS_WITH(array.getChild(2), "No such child");
+    REQUIRE_THROWS_WITH(array.getChild(2), "No element indexed by: 2");
 }
 
 TEST_CASE("append element")

@@ -1,5 +1,6 @@
 #include <scribe/Node.h>
 #include <scribe/EntityProcessor.h>
+#include <scribe/makeString.h>
 
 using namespace scribe;
 
@@ -26,7 +27,7 @@ Entity& Node::getChild(const std::string& name) const
     }
     catch (const std::out_of_range&)
     {
-        throw NoSuchChild("No such child");
+        throw NoSuchChild(makeString() << "No such child in node: " << name);
     }
 }
 

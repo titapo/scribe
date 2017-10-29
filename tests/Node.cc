@@ -16,7 +16,7 @@ TEST_CASE("get nonexisting child")
 {
     Node node;
     REQUIRE_THROWS_AS(node.getChild("xxx"), NoSuchChild);
-    REQUIRE_THROWS_WITH(node.getChild("xxx"), "No such child");
+    REQUIRE_THROWS_WITH(node.getChild("xxx"), "No such child in node: xxx");
 }
 
 TEST_CASE("add child to node")
