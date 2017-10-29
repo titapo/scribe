@@ -19,6 +19,11 @@ void Node::addChild(const std::string& name, std::unique_ptr<Entity> child)
     children.emplace(name, std::move(child));
 }
 
+bool Node::hasChild(const std::string& name) const
+{
+  return children.find(name) != children.end();
+}
+
 Entity& Node::getChild(const std::string& name) const
 {
     try

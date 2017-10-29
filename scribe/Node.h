@@ -56,6 +56,7 @@ namespace scribe
             inline const_iterator end() const
             { return const_iterator(children.end()); }
 
+            bool hasChild(const std::string& name) const;
             Entity& getChild(const std::string& name) const;
             WeakEntry getEntry(const std::string& name) const;
 
