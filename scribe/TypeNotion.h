@@ -31,6 +31,7 @@ namespace scribe
       public:
         void validate(const Entity& entity) const override;
         std::unique_ptr<Entity> instantiate() override;
+        const Node& get(const Entity&) const;
     };
 
     class ArrayType : public TypeNotion
@@ -38,6 +39,7 @@ namespace scribe
       public:
         void validate(const Entity& entity) const override;
         std::unique_ptr<Entity> instantiate() override;
+        const Array& get(const Entity&) const;
     };
 
     class LeafBaseValidator : public EntityProcessor
@@ -73,9 +75,15 @@ namespace scribe
           LeafValidator<T> validator;
           entity.processBy(validator);
         }
+
         std::unique_ptr<Entity> instantiate() override
         {
           throw ScribeException("Not implemented yet!");
+        }
+
+        const Leaf<T>& get(const Entity& entity) const
+        {
+          return dynamic_cast<const Leaf<T>&>(entity);
         }
     };
   }
