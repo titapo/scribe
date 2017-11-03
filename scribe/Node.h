@@ -62,6 +62,7 @@ namespace scribe
 
             void processBy(EntityProcessor& processor) override;
             void processBy(EntityProcessor& processor) const override;
+            void processBy(MutableEntityProcessor& processor) override;
 
         private:
             container_type children;

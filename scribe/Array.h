@@ -17,6 +17,7 @@ namespace scribe
 
             void processBy(EntityProcessor& processor) override;
             void processBy(EntityProcessor& processor) const override;
+            void processBy(MutableEntityProcessor& processor) override;
 
             std::size_t size() const;
 

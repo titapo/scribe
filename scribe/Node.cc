@@ -50,3 +50,8 @@ void Node::processBy(EntityProcessor& processor) const
 {
     processor.process(*this);
 }
+
+void Node::processBy(MutableEntityProcessor& processor)
+{
+  processor.process(*this);
+}

@@ -10,6 +10,7 @@ namespace scribe
         public:
             void processBy(EntityProcessor& processor) override;
             void processBy(EntityProcessor& processor) const override;
+            void processBy(MutableEntityProcessor& processor) override;
             virtual std::ostream& toStream(std::ostream& stream) const = 0;
     };
 

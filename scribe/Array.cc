@@ -14,6 +14,11 @@ void Array::processBy(EntityProcessor& processor) const
     processor.process(*this);
 }
 
+void Array::processBy(MutableEntityProcessor& processor)
+{
+    processor.process(*this);
+}
+
 std::size_t Array::size() const
 {
     return children.size();
