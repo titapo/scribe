@@ -55,6 +55,21 @@ TEST_CASE("node")
   {
     REQUIRE(notion.instantiate() != nullptr);
   }
+
+  SECTION("get node")
+  {
+    REQUIRE_NOTHROW(notion.get(Node()));
+  }
+
+  SECTION("get array")
+  {
+    REQUIRE_THROWS_AS(notion.get(Array()), ScribeException);
+  }
+
+  SECTION("get leaf")
+  {
+    REQUIRE_THROWS_AS(notion.get(Leaf<int>(1)), ScribeException);
+  }
 }
 
 TEST_CASE("array")
@@ -79,6 +94,21 @@ TEST_CASE("array")
   SECTION("instantiate")
   {
     REQUIRE_NOTHROW(notion.instantiate() != nullptr);
+  }
+
+  SECTION("get node")
+  {
+    REQUIRE_THROWS_AS(notion.get(Node()), ScribeException);
+  }
+
+  SECTION("get array")
+  {
+    REQUIRE_NOTHROW(notion.get(Array()));
+  }
+
+  SECTION("get leaf")
+  {
+    REQUIRE_THROWS_AS(notion.get(Leaf<int>(1)), ScribeException);
   }
 }
 
@@ -131,5 +161,21 @@ TEST_CASE("leaf")
   SECTION("instantiate")
   {
     REQUIRE_THROWS_AS(notion.instantiate(), ScribeException);
+  }
+
+  SECTION("get node")
+  {
+    REQUIRE_THROWS_AS(notion.get(Node()), ScribeException);
+  }
+
+  SECTION("get array")
+  {
+    REQUIRE_THROWS_AS(notion.get(Array()), ScribeException);
+  }
+
+  SECTION("get leaf")
+  {
+    REQUIRE_NOTHROW(notion.get(Leaf<int>(1)));
+    REQUIRE_THROWS_AS(notion.get(Leaf<bool>(false)), ScribeException);
   }
 }

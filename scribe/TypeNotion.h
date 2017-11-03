@@ -14,6 +14,7 @@ namespace scribe
     public:
       virtual void validate(const Entity& entity) const = 0;
       virtual std::unique_ptr<Entity> instantiate() = 0;
+        
       virtual ~TypeNotion() {}
   };
 
@@ -31,6 +32,7 @@ namespace scribe
       public:
         void validate(const Entity& entity) const override;
         std::unique_ptr<Entity> instantiate() override;
+        Node& get(Entity&) const;
         const Node& get(const Entity&) const;
     };
 
@@ -39,6 +41,7 @@ namespace scribe
       public:
         void validate(const Entity& entity) const override;
         std::unique_ptr<Entity> instantiate() override;
+        Array& get(Entity&) const;
         const Array& get(const Entity&) const;
     };
 
@@ -81,9 +84,22 @@ namespace scribe
           throw ScribeException("Not implemented yet!");
         }
 
+        Leaf<T>& get(Entity& entity) const
+        {
+          auto leaf = dynamic_cast<Leaf<T>*>(&entity);
+          if (!leaf)
+            throw ScribeException("Not a proper leaf!");
+
+          return *leaf;
+        }
+
         const Leaf<T>& get(const Entity& entity) const
         {
-          return dynamic_cast<const Leaf<T>&>(entity);
+          const auto leaf = dynamic_cast<const Leaf<T>*>(&entity);
+          if (!leaf)
+            throw ScribeException("Not a proper leaf!");
+
+          return *leaf;
         }
     };
   }
