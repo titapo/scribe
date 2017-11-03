@@ -43,6 +43,9 @@ TypeDefinition TypeDefinition::fromNode(const Node& node)
   const auto& meta = getMeta(node);
   // TODO check specifier key
   TypeDefinition def(types::LeafType<std::string>().get(meta.getChild("name")).getValue());
+  if (!node.hasChild("fields"))
+    return def;
+
   const auto& fieldsNode = types::NodeType().get(node.getChild("fields"));
   for (const auto& fieldEntry : fieldsNode)
   {

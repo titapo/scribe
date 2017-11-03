@@ -5,6 +5,13 @@
 
 using namespace scribe;
 
+meta::TypeDefinition getPersonDefinition()
+{
+  meta::TypeDefinition def("Person");
+  def.addField({"name", "string"});
+  def.addField({"age", "unsigned"});
+  return def;
+}
 TEST_CASE("type definition -- add to node")
 {
   meta::TypeDefinition def("Person");
@@ -44,19 +51,70 @@ TEST_CASE("type definition -- add to node")
   }
 }
 
+#include <scribe/TypeNotion.h>
+
 TEST_CASE("type definition -- from node")
 {
-  meta::TypeDefinition def("Person");
-  def.addField({"name", "string"});
-  def.addField({"age", "unsigned"});
+  SECTION("from empty node")
+  {
+    Node node;
+    REQUIRE_THROWS_AS(meta::TypeDefinition::fromNode(node), ScribeException); // TODO Some meta exception
+    REQUIRE_THROWS_WITH(meta::TypeDefinition::fromNode(node), "No such child in node: ^^meta^^");
+  }
 
-  Node node;
-  def.addToNode(node);
+  SECTION("from empty node")
+  {
+    meta::TypeDefinition def("Person");
 
-  const auto& result = meta::TypeDefinition::fromNode(node);
-  REQUIRE(result.getName() == "Person");
-  REQUIRE(result.getFields().find("name") != result.getFields().end());
-  REQUIRE(result.getFields().find("name")->second.type == "string");
-  REQUIRE(result.getFields().find("age") != result.getFields().end());
-  REQUIRE(result.getFields().find("age")->second.type == "unsigned");
+    Node node;
+    def.addToNode(node);
+
+    const auto& result = meta::TypeDefinition::fromNode(node);
+    REQUIRE(result.getName() == "Person");
+  }
+
+  SECTION("to node and back -- with fields")
+  {
+    const auto& def = getPersonDefinition();
+
+    Node node;
+    def.addToNode(node);
+
+    const auto& result = meta::TypeDefinition::fromNode(node);
+    REQUIRE(result.getName() == "Person");
+    REQUIRE(result.getFields().find("name") != result.getFields().end());
+    REQUIRE(result.getFields().find("name")->second.type == "string");
+    REQUIRE(result.getFields().find("age") != result.getFields().end());
+    REQUIRE(result.getFields().find("age")->second.type == "unsigned");
+  }
+
+  SECTION("to node and back -- with fields, but removing specifier key from node")
+  {
+    const auto& def = getPersonDefinition();
+
+    Node node;
+    def.addToNode(node);
+
+    types::NodeType().get(node.getChild(meta::metaSpecifier)).removeChild(meta::specifierKey);
+
+    const auto& result = meta::TypeDefinition::fromNode(node);
+    REQUIRE(result.getName() == "Person");
+    REQUIRE(result.getFields().find("name") != result.getFields().end());
+    REQUIRE(result.getFields().find("name")->second.type == "string");
+    REQUIRE(result.getFields().find("age") != result.getFields().end());
+    REQUIRE(result.getFields().find("age")->second.type == "unsigned");
+  }
 }
+
+#include <scribe/EntityFormatter.h>
+
+TEST_CASE("type definition -- explicit exported content")
+{
+  Node node;
+  getPersonDefinition().addToNode(node);
+  std::stringstream output;
+  EntityFormatter formatter(output, {});
+  node.processBy(formatter);
+  REQUIRE(output.str() == "{\n  fields: {\n    name: string\n    age: unsigned\n  }\n  ^^meta^^: {\n    name: Person\n    ?: type_definition\n  }\n}");
+}
+
