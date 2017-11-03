@@ -41,6 +41,15 @@ Node::WeakEntry Node::getEntry(const std::string& name) const
     return WeakEntry(name, getChild(name));
 }
 
+void Node::removeChild(const std::string& name)
+{
+    auto element = children.find(name);
+    if (element == children.end())
+        return;
+
+    children.erase(element);
+}
+
 void Node::processBy(EntityProcessor& processor)
 {
     processor.process(*this);

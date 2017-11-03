@@ -19,6 +19,12 @@ TEST_CASE("get nonexisting child")
     REQUIRE_THROWS_WITH(node.getChild("xxx"), "No such child in node: xxx");
 }
 
+TEST_CASE("remove nonexisting child")
+{
+    Node node;
+    REQUIRE_NOTHROW(node.removeChild("xxx"));
+}
+
 TEST_CASE("add child to node")
 {
     Node node;
@@ -28,6 +34,18 @@ TEST_CASE("add child to node")
 
     REQUIRE(node.getEntry("name").first == "name");
     REQUIRE(dynamic_cast<Leaf<int>&>(node.getEntry("name").second).getValue() == 12);
+}
+
+TEST_CASE("remove child from node")
+{
+    Node node;
+    node.addChild("name", Entity::create<Leaf<int>>(12));
+    node.addChild("age", Entity::create<Leaf<int>>(15));
+    REQUIRE(node.size() == 2);
+
+    node.removeChild("name");
+    REQUIRE(!node.hasChild("name"));
+    REQUIRE(node.size() == 1);
 }
 
 TEST_CASE("add child as a pair to node")

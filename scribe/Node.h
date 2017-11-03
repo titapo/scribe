@@ -60,6 +60,8 @@ namespace scribe
             Entity& getChild(const std::string& name) const;
             WeakEntry getEntry(const std::string& name) const;
 
+            void removeChild(const std::string& name);
+
             void processBy(EntityProcessor& processor) override;
             void processBy(EntityProcessor& processor) const override;
             void processBy(MutableEntityProcessor& processor) override;
