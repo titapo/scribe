@@ -15,6 +15,10 @@ namespace scribe
       void registerType(const TypeName& name, std::unique_ptr<TypeNotion>&& type);
       const TypeNotion& getType(const TypeName& name) const;
 
+      // TODO validation context
+      // TODO how to handle validation context (eg. type hint, expected type, skip meta, lazy/strict etc.)
+      void validate(const Entity& entity) const;
+
     private:
       std::unordered_map<TypeName, std::unique_ptr<TypeNotion>> types;
   };
