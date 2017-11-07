@@ -31,21 +31,38 @@ namespace scribe
 
                 unsigned indentationLevel{0};
             };
+
             explicit EntityFormatter(std::ostream& str);
             EntityFormatter(std::ostream& str, DisplayContext context);
 
-            void display(const Node::WeakEntry& entry, DisplayContext context = {});
+            std::ostream& display(const Entity& entity);
+            std::ostream& display(const Node::WeakEntry& entry);
 
             void process(const LeafBase& leaf) override;
             void process(const Node& node) override;
             void process(const Array& array) override;
 
         private:
-            std::ostream& addIndentation();
-
             std::ostream& stream;
-            DisplayContext context;
+            const DisplayContext context;
     };
+
+    // Helper struct
+    // std::cout << printEntity(myEntityReference) << std::endl;
+    // Later it should be used with other Formatters. This is why it is not a static method of EntityFormatter.
+    struct printEntity
+    {
+        printEntity(const Entity& entity)
+            : entity(entity)
+        {}
+
+        const Entity& entity;
+    };
+
+    inline std::ostream& operator<<(std::ostream& ostr, const printEntity& printer)
+    {
+        return EntityFormatter(ostr).display(printer.entity);
+    }
 
 }
 

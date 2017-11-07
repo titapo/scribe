@@ -12,12 +12,16 @@ EntityFormatter::EntityFormatter(std::ostream& str, DisplayContext context)
     , context(std::move(context))
 {}
 
+std::ostream& EntityFormatter::display(const Entity& entity)
+{
+  entity.processBy(*this);
+  return stream;
+}
 
-void EntityFormatter::display(const Node::WeakEntry& entry, DisplayContext newContext)
+std::ostream& EntityFormatter::display(const Node::WeakEntry& entry)
 {
     stream << entry.first << ": ";
-    context = std::move(newContext);
-    entry.second.processBy(*this);
+    return display(entry.second);
 }
 
 void EntityFormatter::process(const LeafBase& leaf)
@@ -29,11 +33,11 @@ void EntityFormatter::process(const Node& node)
 {
     stream << "{";
     const auto nested = context.deeper();
-    EntityFormatter formatter(stream);
+    EntityFormatter formatter(stream, nested);
     for (const auto& childEntry : node)
     {
         stream << std::endl << nested.indentation();
-        formatter.display(childEntry, nested);
+        formatter.display(childEntry);
     }
     stream << std::endl << context.indentation() << "}";
 }
