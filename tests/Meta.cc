@@ -98,12 +98,23 @@ TEST_CASE("type definition -- from node")
 
     types::NodeType().get(node.getChild(meta::metaSpecifier)).removeChild(meta::specifierKey);
 
-    const auto& result = meta::TypeDefinition::fromNode(node); // TODO it should throw
-    REQUIRE(result.getName() == "Person");
-    REQUIRE(result.getFields().find("name") != result.getFields().end());
-    REQUIRE(result.getFields().find("name")->second.type == "string");
-    REQUIRE(result.getFields().find("age") != result.getFields().end());
-    REQUIRE(result.getFields().find("age")->second.type == "unsigned");
+    REQUIRE_THROWS_AS(meta::TypeDefinition::fromNode(node), ScribeException);
+    REQUIRE_THROWS_WITH(meta::TypeDefinition::fromNode(node), "Missing meta specifier!");
+  }
+
+  SECTION("to node and back -- with fields, but altering specifier key")
+  {
+    const auto& def = getPersonDefinition();
+
+    Node node;
+    def.addToNode(node);
+
+    auto& specifier = types::NodeType().get(node.getChild(meta::metaSpecifier)).getChild(meta::specifierKey);
+    types::LeafType<std::string>().get(specifier).setValue("other thing");
+
+    REQUIRE_THROWS_AS(meta::TypeDefinition::fromNode(node), ScribeException);
+    REQUIRE_THROWS_WITH(meta::TypeDefinition::fromNode(node),
+        "Invalid meta specifier: 'other thing' (expected: 'type_definition')!");
   }
 }
 

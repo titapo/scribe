@@ -14,7 +14,6 @@ const Node& getMeta(const Node& node)
 
 void assertMetaSpecifier(const Node& meta, const std::string& expectedSpecifier)
 {
-
   if (!meta.hasChild(specifierKey))
     throw ScribeException(makeString() << "Missing meta specifier!");
 
@@ -60,7 +59,7 @@ void TypeDefinition::addField(TypeDefinition::Field&& field)
 TypeDefinition TypeDefinition::fromNode(const Node& node)
 {
   const auto& meta = getMeta(node);
-  // TODO check specifier key
+  assertMetaSpecifier(meta, "type_definition");
   TypeDefinition def(types::LeafType<std::string>().get(meta.getChild("name")).getValue());
   if (!node.hasChild("fields"))
     return def;
