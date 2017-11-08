@@ -12,6 +12,25 @@ const Node& getMeta(const Node& node)
   return types::NodeType().get(meta);
 }
 
+void assertMetaSpecifier(const Node& meta, const std::string& expectedSpecifier)
+{
+
+  if (!meta.hasChild(specifierKey))
+    throw ScribeException(makeString() << "Missing meta specifier!");
+
+  const auto& specifier = types::LeafType<std::string>().get(meta.getChild(specifierKey)).getValue();
+  if (specifier != expectedSpecifier)
+    throw ScribeException(makeString() << "Invalid meta specifier: '" << specifier
+        << "' (expected: '" << expectedSpecifier<< "')!");
+}
+
+std::unique_ptr<Node> createMeta(const std::string& specifier)
+{
+  auto meta = std::make_unique<Node>();
+  meta->addChild(specifierKey, Entity::create<Leaf<std::string>>(specifier));
+  return meta;
+}
+
 void TypeDefinition::addToNode(Node& node) const
 {
   auto meta = std::make_unique<Node>();
@@ -52,4 +71,23 @@ TypeDefinition TypeDefinition::fromNode(const Node& node)
     def.addField({fieldEntry.first, types::LeafType<std::string>().get(fieldEntry.second).getValue()});
   }
   return def;
+}
+
+void TypeReference::addToNode(Node& node) const
+{
+  auto meta = createMeta("type_ref");
+  meta->addChild("type", Entity::create<Leaf<std::string>>(type));
+  node.addChild(std::string(metaSpecifier), std::move(meta));
+}
+
+TypeReference TypeReference::fromNode(const Node& node)
+{
+  const auto& meta = getMeta(node);
+  assertMetaSpecifier(meta, "type_ref");
+  return TypeReference(types::LeafType<std::string>().get(meta.getChild("type")).getValue());
+}
+
+TypeReference::TypeName TypeReference::getTypename() const
+{
+  return type;
 }

@@ -12,6 +12,7 @@ meta::TypeDefinition getPersonDefinition()
   def.addField({"age", "unsigned"});
   return def;
 }
+
 TEST_CASE("type definition -- add to node")
 {
   meta::TypeDefinition def("Person");
@@ -62,7 +63,7 @@ TEST_CASE("type definition -- from node")
     REQUIRE_THROWS_WITH(meta::TypeDefinition::fromNode(node), "No such child in node: ^^meta^^");
   }
 
-  SECTION("from empty node")
+  SECTION("to node and back -- without fields")
   {
     meta::TypeDefinition def("Person");
 
@@ -97,7 +98,7 @@ TEST_CASE("type definition -- from node")
 
     types::NodeType().get(node.getChild(meta::metaSpecifier)).removeChild(meta::specifierKey);
 
-    const auto& result = meta::TypeDefinition::fromNode(node);
+    const auto& result = meta::TypeDefinition::fromNode(node); // TODO it should throw
     REQUIRE(result.getName() == "Person");
     REQUIRE(result.getFields().find("name") != result.getFields().end());
     REQUIRE(result.getFields().find("name")->second.type == "string");
@@ -118,3 +119,65 @@ TEST_CASE("type definition -- explicit exported content")
   REQUIRE(output.str() == "{\n  fields: {\n    name: string\n    age: unsigned\n  }\n  ^^meta^^: {\n    name: Person\n    ?: type_definition\n  }\n}");
 }
 
+TEST_CASE("type reference -- add to node")
+{
+
+  meta::TypeReference ref("Person");
+  Node node;
+
+  ref.addToNode(node);
+  REQUIRE(node.hasChild(meta::metaSpecifier));
+  const auto& meta = types::NodeType().get(node.getChild(meta::metaSpecifier));
+  REQUIRE(meta.hasChild(meta::specifierKey));
+  REQUIRE(types::LeafType<std::string>().get(meta.getChild(meta::specifierKey)).getValue() == "type_ref");
+  REQUIRE(meta.hasChild("type"));
+  REQUIRE(types::LeafType<std::string>().get(meta.getChild("type")).getValue() == "Person");
+}
+
+TEST_CASE("type reference -- from node")
+{
+
+  SECTION("from empty node")
+  {
+    Node node;
+    REQUIRE_THROWS_AS(meta::TypeReference::fromNode(node), ScribeException); // TODO Some meta exception
+    REQUIRE_THROWS_WITH(meta::TypeReference::fromNode(node), "No such child in node: ^^meta^^");
+  }
+
+  SECTION("to node and back")
+  {
+    meta::TypeReference ref("Person");
+
+    Node node;
+    ref.addToNode(node);
+
+    const auto& result = meta::TypeReference::fromNode(node);
+    REQUIRE(result.getTypename() == "Person");
+  }
+
+  SECTION("to node and back -- but removing the specifer")
+  {
+    meta::TypeReference ref("Person");
+
+    Node node;
+    ref.addToNode(node);
+    types::NodeType().get(node.getChild(meta::metaSpecifier)).removeChild(meta::specifierKey);
+
+    REQUIRE_THROWS_AS(meta::TypeReference::fromNode(node), ScribeException);
+    REQUIRE_THROWS_WITH(meta::TypeReference::fromNode(node), "Missing meta specifier!");
+  }
+
+  SECTION("to node and back -- but altering the specifer")
+  {
+    meta::TypeReference ref("Person");
+
+    Node node;
+    ref.addToNode(node);
+    auto& specifier = types::NodeType().get(node.getChild(meta::metaSpecifier)).getChild(meta::specifierKey);
+    types::LeafType<std::string>().get(specifier).setValue("other thing");
+
+    REQUIRE_THROWS_AS(meta::TypeReference::fromNode(node), ScribeException);
+    REQUIRE_THROWS_WITH(meta::TypeReference::fromNode(node), "Invalid meta specifier: 'other thing' (expected: 'type_ref')!");
+  }
+
+}

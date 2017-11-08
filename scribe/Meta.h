@@ -14,8 +14,8 @@ namespace scribe
 
     enum class MetaSpecifiers
     {
-        TypeDefinition
-        //TypeReference,
+        TypeDefinition,
+        TypeReference
     };
 
     class MetaBase
@@ -66,6 +66,24 @@ namespace scribe
           // inherits/parents
           Fields fields;
           // methods
+    };
+
+    class TypeReference : public MetaBase
+    {
+        public:
+          using TypeName = std::string;
+
+          TypeReference(const TypeName& type)
+            : type(type)
+          {}
+
+          TypeName getTypename() const;
+
+          void addToNode(Node& node) const override;
+          static TypeReference fromNode(const Node& node);
+
+        private:
+          const TypeName type;
 
     };
 
