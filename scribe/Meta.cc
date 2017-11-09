@@ -8,6 +8,9 @@ using namespace scribe::meta;
 
 const Node& getMeta(const Node& node)
 {
+  if (!node.hasChild(metaSpecifier))
+    throw MetaException(makeString() << "Missing meta key!");
+
   const auto& meta = node.getChild(std::string(metaSpecifier));
   return types::NodeType().get(meta);
 }
@@ -15,11 +18,11 @@ const Node& getMeta(const Node& node)
 void assertMetaSpecifier(const Node& meta, const std::string& expectedSpecifier)
 {
   if (!meta.hasChild(specifierKey))
-    throw ScribeException(makeString() << "Missing meta specifier!");
+    throw MetaException(makeString() << "Missing meta specifier!");
 
   const auto& specifier = types::LeafType<std::string>().get(meta.getChild(specifierKey)).getValue();
   if (specifier != expectedSpecifier)
-    throw ScribeException(makeString() << "Invalid meta specifier: '" << specifier
+    throw meta::MetaException(makeString() << "Invalid meta specifier: '" << specifier
         << "' (expected: '" << expectedSpecifier<< "')!");
 }
 
@@ -51,7 +54,7 @@ void TypeDefinition::addToNode(Node& node) const
 void TypeDefinition::addField(TypeDefinition::Field&& field)
 {
   if (fields.find(field.name) != fields.end())
-    throw ScribeException(makeString() << "Field already exists: '" << field.name << "'!");
+    throw MetaException(makeString() << "Field already exists: '" << field.name << "'!");
 
   fields.emplace(field.name, std::move(field));
 }

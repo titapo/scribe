@@ -12,6 +12,12 @@ namespace scribe
     constexpr char metaSpecifier[] = "^^meta^^";
     constexpr char specifierKey[] = "?";
 
+    class MetaException : public ScribeException
+    {
+      public:
+        using ScribeException::ScribeException;
+    };
+
     enum class MetaSpecifiers
     {
         TypeDefinition,
