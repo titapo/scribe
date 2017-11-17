@@ -31,11 +31,11 @@ TEST_CASE("iterate through const")
 {
     const Array array = []
     {
-        Array array;
-        array.append(Entity::create<Leaf<int>>(1));
-        array.append(Entity::create<Leaf<int>>(2));
-        array.append(Entity::create<Leaf<int>>(3));
-        return array;
+        Array a;
+        a.append(Entity::create<Leaf<int>>(1));
+        a.append(Entity::create<Leaf<int>>(2));
+        a.append(Entity::create<Leaf<int>>(3));
+        return a;
     }();
     int sum = 0;
     for (const auto& child : array)

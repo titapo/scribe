@@ -8,8 +8,8 @@ template <typename orig_type>
     class iterator_adaptor_to
     {
         public:
-            iterator_adaptor_to(orig_type orig)
-                : orig(orig)
+            iterator_adaptor_to(orig_type original)
+                : orig(original)
             {}
 
             inline iterator_adaptor_to& operator++()

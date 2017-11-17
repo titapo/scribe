@@ -1,6 +1,7 @@
 CXX=g++
 CXXFLAGS= \
 		  --std=c++14 -pedantic \
+			-Wshadow \
 		  -Wall -Werror -Wextra -Wsuggest-override \
 		  -Wduplicated-branches -Wduplicated-cond \
 

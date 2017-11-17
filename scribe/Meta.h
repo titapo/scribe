@@ -36,15 +36,15 @@ namespace scribe
         public:
           using TypeName = std::string;
 
-          TypeDefinition(const std::string& name)
-            : name(name)
+          TypeDefinition(const std::string& defName)
+            : name(defName)
           {}
 
           struct Field
           {
-            Field(const std::string& name, const TypeName& type)
-              : name(name)
-              , type(type)
+            Field(const std::string& field, const TypeName& typeName)
+              : name(field)
+              , type(typeName)
             {}
 
             std::string name;
@@ -79,8 +79,8 @@ namespace scribe
         public:
           using TypeName = std::string;
 
-          TypeReference(const TypeName& type)
-            : type(type)
+          TypeReference(const TypeName& typeName)
+            : type(typeName)
           {}
 
           TypeName getTypename() const;
