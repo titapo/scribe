@@ -73,11 +73,11 @@ TEST_CASE("iterating through const node")
 {
     const auto node = []
     {
-        Node node;
-        node.addChild("a", Entity::create<Leaf<int>>(1));
-        node.addChild("b", Entity::create<Leaf<int>>(2));
-        node.addChild("c", Entity::create<Leaf<int>>(3));
-        return node;
+        Node n;
+        n.addChild("a", Entity::create<Leaf<int>>(1));
+        n.addChild("b", Entity::create<Leaf<int>>(2));
+        n.addChild("c", Entity::create<Leaf<int>>(3));
+        return n;
     }();
 
     int sum = 0;

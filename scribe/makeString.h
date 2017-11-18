@@ -20,7 +20,8 @@ namespace scribe
         return *this;
       }
 
-      operator std::string() const
+      // google-explicit-constructor is suppressed here, because this is the point now
+      operator std::string() const // NOLINT
       {
         return str.str();
       }

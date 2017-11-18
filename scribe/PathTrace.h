@@ -17,7 +17,7 @@ namespace scribe
       using weak_element_type = std::pair<PathElement&, std::reference_wrapper<Entity>>;
       using container_type = std::vector<element_type>;
 
-      PathTrace(Entity& entity);
+      explicit PathTrace(Entity& entity);
 
       Entity& getLast() const;
 

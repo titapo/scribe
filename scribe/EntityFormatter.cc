@@ -7,9 +7,9 @@ EntityFormatter::EntityFormatter(std::ostream& str)
     : stream(str)
 {}
 
-EntityFormatter::EntityFormatter(std::ostream& str, DisplayContext context)
+EntityFormatter::EntityFormatter(std::ostream& str, DisplayContext displayContext)
     : stream(str)
-    , context(std::move(context))
+    , context(displayContext)
 {}
 
 std::ostream& EntityFormatter::display(const Entity& entity)

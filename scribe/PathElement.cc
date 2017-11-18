@@ -35,8 +35,8 @@ namespace
   class ChildGetterProcessor : public PathElementProcessor
   {
     public:
-      ChildGetterProcessor(const std::string& name)
-        : name(name)
+      explicit ChildGetterProcessor(const std::string& key)
+        : name(key)
       {}
 
       void process(const Node& node) override
@@ -51,8 +51,8 @@ namespace
   class IndexGetterProcessor : public PathElementProcessor
   {
     public:
-      IndexGetterProcessor(Index::index_t index)
-        : index(index)
+      explicit IndexGetterProcessor(Index::index_t indexToFind)
+        : index(indexToFind)
       {}
 
       void process(const Array& array) override
@@ -72,8 +72,8 @@ std::string PathElement::toString() const
   return str.str();
 }
 
-Child::Child(const std::string& name)
-  : name(name)
+Child::Child(const std::string& keyToFind)
+  : name(keyToFind)
 {}
 
 Entity& Child::evaluate(Entity& entity) const
@@ -86,8 +86,8 @@ Entity& Child::evaluate(Entity& entity) const
 std::ostream& Child::toStream(std::ostream& str) const
 { return str << "." << name;}
 
-Index::Index(Index::index_t index)
-  : index(index)
+Index::Index(Index::index_t indexToFind)
+  : index(indexToFind)
 {}
 
 Entity& Index::evaluate(Entity& entity) const
