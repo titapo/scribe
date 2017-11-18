@@ -19,11 +19,11 @@ namespace scribe
     {
         public:
             using value_type = T;
-            Leaf(const value_type& initial)
+            explicit Leaf(const value_type& initial)
                 : value(initial)
             {}
 
-            Leaf(value_type&& initial)
+            explicit Leaf(value_type&& initial)
                 : value(std::move(initial))
             {}
 

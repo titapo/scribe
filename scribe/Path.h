@@ -18,7 +18,7 @@ namespace scribe
       using ElementPtr = PathElement::Ptr;
       using Elements = std::vector<ElementPtr>;
 
-      Path(Elements&& newElements);
+      explicit Path(Elements&& newElements);
 
       Path() = default;
       void extend(ElementPtr&& element);

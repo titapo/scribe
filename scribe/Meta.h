@@ -36,7 +36,7 @@ namespace scribe
         public:
           using TypeName = std::string;
 
-          TypeDefinition(const std::string& defName)
+          explicit TypeDefinition(const std::string& defName)
             : name(defName)
           {}
 
@@ -79,7 +79,7 @@ namespace scribe
         public:
           using TypeName = std::string;
 
-          TypeReference(const TypeName& typeName)
+          explicit TypeReference(const TypeName& typeName)
             : type(typeName)
           {}
 

@@ -35,7 +35,7 @@ namespace
   class ChildGetterProcessor : public PathElementProcessor
   {
     public:
-      ChildGetterProcessor(const std::string& key)
+      explicit ChildGetterProcessor(const std::string& key)
         : name(key)
       {}
 
@@ -51,7 +51,7 @@ namespace
   class IndexGetterProcessor : public PathElementProcessor
   {
     public:
-      IndexGetterProcessor(Index::index_t indexToFind)
+      explicit IndexGetterProcessor(Index::index_t indexToFind)
         : index(indexToFind)
       {}
 

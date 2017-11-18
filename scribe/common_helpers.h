@@ -8,7 +8,7 @@ template <typename orig_type>
     class iterator_adaptor_to
     {
         public:
-            iterator_adaptor_to(orig_type original)
+            explicit iterator_adaptor_to(orig_type original)
                 : orig(original)
             {}
 

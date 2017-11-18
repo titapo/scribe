@@ -125,7 +125,7 @@ TEST_CASE("type definition -- explicit exported content")
   Node node;
   getPersonDefinition().addToNode(node);
   std::stringstream output;
-  EntityFormatter formatter(output, {});
+  EntityFormatter formatter(output);
   node.processBy(formatter);
   REQUIRE(output.str() == "{\n  fields: {\n    name: string\n    age: unsigned\n  }\n  ^^meta^^: {\n    name: Person\n    ?: type_definition\n  }\n}");
 }

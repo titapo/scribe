@@ -27,7 +27,7 @@ namespace scribe
   class Child : public PathElement
   {
     public:
-      Child(const std::string& name);
+      explicit Child(const std::string& name);
 
       PathElement::Ptr clonePtr() const override
       { return PathElement::Ptr(new Child(name)); }
@@ -44,7 +44,7 @@ namespace scribe
   {
     public:
       using index_t = unsigned;
-      Index(index_t index);
+      explicit Index(index_t index);
 
       PathElement::Ptr clonePtr() const override
       { return PathElement::Ptr(new Index(index)); }

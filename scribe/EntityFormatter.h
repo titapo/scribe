@@ -21,7 +21,7 @@ namespace scribe
             struct DisplayContext
             {
                 using IndentationLevel = unsigned;
-                DisplayContext(IndentationLevel indentation = 0)
+                explicit DisplayContext(IndentationLevel indentation = 0)
                     : indentationLevel(indentation)
                 {}
 
@@ -30,7 +30,7 @@ namespace scribe
 
                 std::string indentation() const;
 
-                IndentationLevel indentationLevel{0};
+                const IndentationLevel indentationLevel{0};
             };
 
             explicit EntityFormatter(std::ostream& str);
@@ -53,7 +53,7 @@ namespace scribe
     // Later it should be used with other Formatters. This is why it is not a static method of EntityFormatter.
     struct printEntity
     {
-        printEntity(const Entity& printedEntity)
+        explicit printEntity(const Entity& printedEntity)
             : entity(printedEntity)
         {}
 
