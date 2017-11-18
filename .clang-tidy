@@ -1,0 +1,4 @@
+Checks: 'google-explicit-constructor,readability-function-size,misc-redundant-expression,misc-use-after-move,misc-unused-raii,misc-dangling-handle,readability-redundant-member-init'
+CheckOptions:
+  - key: readability-function-size.LineTreshold
+    value: '3'

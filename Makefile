@@ -5,6 +5,10 @@ CXXFLAGS= \
 		  -Wall -Werror -Wextra -Wsuggest-override \
 		  -Wduplicated-branches -Wduplicated-cond \
 
+#-fsanitize=address \
+
+TIDYFLAGS= -std=c++14 -pedantic
+
 
 # CATCH_VERSION=v1.10.0
 CATCH_VERSION=v2.0.1
@@ -15,13 +19,18 @@ all: lib
 ### library
 LIB_OBJDIR=bin/obj
 LIB_LIBDIR=bin/lib
+LIB_TIDYDIR=$(LIB_OBJDIR)
 LIB_HEADERS=$(wildcard scribe/*.h)
+LIB_HEADERNAMES=$(notdir $(basename $(LIB_HEADERS)))
 LIB_SOURCES=$(wildcard scribe/*.cc)
-LIB_OBJBASENAMES=$(addsuffix .o,$(notdir $(basename $(LIB_SOURCES))))
+LIB_SOURCENAMES=$(notdir $(basename $(LIB_SOURCES)))
+LIB_OBJBASENAMES=$(addsuffix .o,$(LIB_SOURCENAMES))
 LIB_OBJS=$(addprefix $(LIB_OBJDIR)/,$(LIB_OBJBASENAMES))
 LIB_INCLUDE=-I.
 SONAME=lib$(SCRIBE_NAME).so
 
+debug:
+	echo $(LIB_HEADERNAMES:%=$(LIB_TIDYDIR)/%.h.clang-tidy)
 
 ### objs
 create-lib-objdir:
@@ -52,6 +61,13 @@ build-lib: build-objs create-lib-libdir
 
 .PHONY: lib
 lib: build-lib
+
+
+$(LIB_TIDYDIR)/%.tidy: scribe/%
+	clang-tidy -extra-arg-before=-xc++ $< $(TIDY_CHECKS) -- $(LIB_INCLUDE) $(TIDYFLAGS) -I /usr/include/c++/7.2.0/ -I /usr/lib/gcc/x86_64-pc-linux-gnu/7.2.0/include/ -I/usr/include/c++/7.2.0/x86_64-pc-linux-gnu
+
+.PHONY: tidy
+tidy: $(LIB_HEADERNAMES:%=$(LIB_TIDYDIR)/%.h.tidy) $(LIB_SOURCENAMES:%=$(LIB_TIDYDIR)/%.cc.tidy)
 
 
 ### tests
