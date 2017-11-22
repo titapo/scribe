@@ -1,6 +1,7 @@
 #define CATCH_CONFIG_MAIN
 #include <tests/catch.hpp>
 #include <scribe/TypeRegistry.h>
+#include <scribe/RegisterableTypeNotion.h>
 #include <scribe/exception.h>
 #include <scribe/Node.h>
 
@@ -18,7 +19,7 @@ TEST_CASE("check")
   {
     registry.registerType("bool", std::make_unique<types::LeafType<bool>>());
     const auto& type = registry.getType("bool");
-    REQUIRE_NOTHROW(type.validate(Leaf<bool>(true)));
+    REQUIRE_NOTHROW(type.validate(Leaf<bool>(true), {registry})); // This is not a good practice
   }
   
   SECTION("register type with the same name")
