@@ -1,3 +1,6 @@
+#ifndef SCRIBE_MAKESTRING_H_INCLUDED
+#define SCRIBE_MAKESTRING_H_INCLUDED
+
 #include <sstream>
 
 namespace scribe
@@ -30,3 +33,5 @@ namespace scribe
       std::stringstream str;
   };
 }
+
+#endif
