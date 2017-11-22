@@ -3,22 +3,24 @@
 
 #include <scribe/TypeNotion.h>
 #include <scribe/Meta.h>
+#include <scribe/RegisterableTypeNotion.h>
 
 namespace scribe
 {
   namespace types
   {
-    class ComplexTypeNotion : public TypeNotion // NodeType??
+    class ComplexTypeNotion : public RegisterableTypeNotion
     {
       public:
         using TypeDefinition = meta::TypeDefinition;
 
         explicit ComplexTypeNotion(const TypeDefinition& definition);
         explicit ComplexTypeNotion(TypeDefinition&& definition);
-        void validate(const Entity& entity) const override;
-        std::unique_ptr<Entity> instantiate() override;
+        void validate(const Entity& entity, const ValidationContext& context) const override;
 
       private:
+
+        class Checker;
         TypeDefinition definition; // TODO it should not be stored by value
         NodeType nodeType;
     };
