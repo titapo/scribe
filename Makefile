@@ -7,36 +7,51 @@ CXXFLAGS= \
 
 
 CATCH_VERSION=v1.10.0
+SCRIBE_NAME=scribe
 
 all: lib
 
 ### library
-LIB_BINDIR=bin/obj
+LIB_OBJDIR=bin/obj
+LIB_LIBDIR=bin/lib
 LIB_HEADERS=$(wildcard scribe/*.h)
 LIB_SOURCES=$(wildcard scribe/*.cc)
 LIB_OBJBASENAMES=$(addsuffix .o,$(notdir $(basename $(LIB_SOURCES))))
-LIB_OBJS=$(addprefix $(LIB_BINDIR)/,$(LIB_OBJBASENAMES))
+LIB_OBJS=$(addprefix $(LIB_OBJDIR)/,$(LIB_OBJBASENAMES))
 LIB_INCLUDE=-I.
+SONAME=lib$(SCRIBE_NAME).so
 
-debug:
-	@echo $(LIB_OBJS)
 
-create-lib-bindir:
-	mkdir -p $(LIB_BINDIR)
+### objs
+create-lib-objdir:
+	mkdir -p $(LIB_OBJDIR)
+
+.PHONY: clean-objs
+clean-objs:
+	rm -rf $(LIB_OBJDIR)
+
+.PHONY: build-objs
+build-objs: create-lib-objdir $(LIB_OBJS)
+	echo $^
+
+$(LIB_OBJDIR)/%.o: scribe/%.cc
+	$(CXX) $(CXXFLAGS) -c -fpic $(LIB_INCLUDE) $^ -o $@
+
+### lib
+create-lib-libdir:
+	mkdir -p $(LIB_LIBDIR)
 
 .PHONY: clean-lib
 clean-lib:
-	rm -rf $(LIB_BINDIR)
-
-.PHONY: lib
-lib: create-lib-bindir build-lib
+	rm -rf $(LIB_LIBDIR)
 
 .PHONY: build-lib
-build-lib: $(LIB_OBJS)
-	echo $^
+build-lib: build-objs create-lib-libdir
+	$(CXX) -shared $(LIB_OBJS) -o $(LIB_LIBDIR)/$(SONAME)
 
-$(LIB_BINDIR)/%.o: scribe/%.cc
-	$(CXX) $(CXXFLAGS) -c $(LIB_INCLUDE) $^ -o $@
+.PHONY: lib
+lib: build-lib
+
 
 ### tests
 
@@ -50,15 +65,15 @@ create-bin-testdir:
 	mkdir -p $(BIN_TESTDIR)
 
 .PHONY: build-tests
-build-tests: $(TEST_EXEC)
+build-tests: create-bin-testdir $(TEST_EXEC)
 
-$(BIN_TESTDIR)/%: tests/%.cc $(LIB_OBJS)
+$(BIN_TESTDIR)/%: tests/%.cc $(LIB_LIBDIR)/$(SONAME)
 	@echo Building $@
-	$(CXX) $(CXXFLAGS) $(TEST_INCLUDE) $^ -o $@
+	$(CXX) $(CXXFLAGS) $(TEST_INCLUDE) -L$(LIB_LIBDIR) -l$(SCRIBE_NAME) $^ -o $@
 
 .PHONY: check
 check: create-bin-testdir build-tests
-	for test in $(TEST_EXEC); do ./$$test || exit 1; done
+	for test in $(TEST_EXEC); do LD_LIBRARY_PATH=$(LIB_LIBDIR) ./$$test || exit 1; done
 
 .PHONY: clean-tests
 clean-tests:
@@ -71,6 +86,6 @@ download-catch:
 	wget https://raw.githubusercontent.com/philsquared/Catch/$(CATCH_VERSION)/single_include/catch.hpp --output-document=tests/catch.hpp
 
 .PHONY: clean
-clean: clean-lib clean-tests
+clean: clean-lib clean-objs clean-tests
 
 
