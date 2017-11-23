@@ -21,21 +21,15 @@ namespace scribe
 
             std::size_t size() const;
 
-            class iterator : public iterator_adaptor_to<container_type::iterator>
+            template <typename IteratorType>
+            struct ToEntity
             {
-                public:
-                    using iterator_adaptor_to::iterator_adaptor_to;
-                    inline Entity& operator*()
-                    { return *(orig->get()); }
+                    Entity& operator()(const IteratorType& iter)
+                    { return *(iter->get()); }
             };
 
-            class const_iterator : public iterator_adaptor_to<container_type::const_iterator>
-            {
-                public:
-                    using iterator_adaptor_to::iterator_adaptor_to;
-                    inline Entity& operator*()
-                    { return *(orig->get()); }
-            };
+            using iterator = iterator_adaptor<container_type::iterator, ToEntity<container_type::iterator>>;
+            using const_iterator = iterator_adaptor<container_type::const_iterator, ToEntity<container_type::const_iterator>>;
 
             inline const_iterator begin() const { return const_iterator(children.begin()); }
             inline const_iterator end() const { return const_iterator(children.end()); }

@@ -29,21 +29,15 @@ namespace scribe
 
       void extend(const PathElement& element);
 
-      class iterator : public iterator_adaptor_to<container_type::iterator>
+      template <typename IteratorType>
+      struct ToWeak
       {
-        public:
-          using iterator_adaptor_to::iterator_adaptor_to;
-          inline weak_element_type operator*()
-          { return weak_element_type(*(orig->first), orig->second); }
+          weak_element_type operator()(const IteratorType& iter)
+          { return {*(iter->first), iter->second}; }
       };
 
-      class const_iterator : public iterator_adaptor_to<container_type::const_iterator>
-      {
-        public:
-          using iterator_adaptor_to::iterator_adaptor_to;
-          inline weak_element_type operator*()
-          { return weak_element_type(*(orig->first), orig->second); }
-      };
+      using iterator = iterator_adaptor<container_type::iterator, ToWeak<container_type::iterator>>;
+      using const_iterator = iterator_adaptor<container_type::const_iterator, ToWeak<container_type::const_iterator>>;
 
       inline iterator begin()
       { return iterator(elements.begin()); }
