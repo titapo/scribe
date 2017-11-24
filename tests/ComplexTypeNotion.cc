@@ -18,7 +18,7 @@ TEST_CASE("complex type tests")
     SECTION("validate node")
     {
         meta::TypeDefinition def("node");
-        types::ComplexTypeNotion notion{def};
+        types::ComplexTypeNotion notion{def, registry};
 
         REQUIRE_THROWS_AS(notion.validate(Node(), ctx), meta::MetaException);
         REQUIRE_THROWS_WITH(notion.validate(Node(), ctx), "Missing meta key!");
@@ -27,7 +27,7 @@ TEST_CASE("complex type tests")
     SECTION("validate node with other reference")
     {
         meta::TypeDefinition def("node");
-        types::ComplexTypeNotion notion{def};
+        types::ComplexTypeNotion notion{def, registry};
         Node node;
 
         meta::TypeReference("other_ref").addToNode(node);
@@ -39,7 +39,7 @@ TEST_CASE("complex type tests")
     SECTION("validate node with same reference")
     {
         meta::TypeDefinition def("node");
-        types::ComplexTypeNotion notion{def};
+        types::ComplexTypeNotion notion{def, registry};
         Node node;
 
         meta::TypeReference("node").addToNode(node);
@@ -51,7 +51,7 @@ TEST_CASE("complex type tests")
     {
         meta::TypeDefinition def("Person");
         def.addField({"name", "string"});
-        types::ComplexTypeNotion notion{def};
+        types::ComplexTypeNotion notion{def, registry};
 
         Node node;
         meta::TypeReference("Person").addToNode(node);
@@ -64,21 +64,15 @@ TEST_CASE("complex type tests")
     {
         meta::TypeDefinition def("Person");
         def.addField({"name", "mystring"});
-        types::ComplexTypeNotion notion{def};
-
-        Node node;
-        meta::TypeReference("Person").addToNode(node);
-        node.addChild("name", Entity::create<Leaf<std::string>>("Joe"));
-
-        REQUIRE_THROWS_AS(notion.validate(node, ctx), ScribeException); // TODO ValidationError
-        REQUIRE_THROWS_WITH(notion.validate(node, ctx), "Type 'mystring' is not registered!");
+        REQUIRE_THROWS_AS(types::ComplexTypeNotion(def, registry), ScribeException);
+        REQUIRE_THROWS_WITH(types::ComplexTypeNotion(def, registry), "Type 'mystring' is not registered!");
     }
 
     SECTION("validate node with wrong typed field")
     {
         meta::TypeDefinition def("Person");
         def.addField({"name", "string"});
-        types::ComplexTypeNotion notion{def};
+        types::ComplexTypeNotion notion{def, registry};
 
         Node node;
         meta::TypeReference("Person").addToNode(node);
@@ -93,7 +87,7 @@ TEST_CASE("complex type tests")
     {
         meta::TypeDefinition def("Person");
         def.addField({"name", "string"});
-        types::ComplexTypeNotion notion{def};
+        types::ComplexTypeNotion notion{def, registry};
 
         Node node;
         meta::TypeReference("Person").addToNode(node);

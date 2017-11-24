@@ -10,7 +10,7 @@ namespace scribe
 
   struct ValidationContext
   {
-    const TypeRegistry& registry;
+    const TypeRegistry& registry; // TODO it should not be kept here
   };
 
   class TypeValidationError : public ScribeException

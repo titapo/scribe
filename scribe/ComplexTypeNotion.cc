@@ -17,9 +17,18 @@ namespace scribe
         void checkReference();
         void checkFields(const ValidationContext& context);
 
+        // FIXME it is not the best place for it
+        static void createFields(types::ComplexTypeNotion::Fields& fields,
+            const types::ComplexTypeNotion::TypeDefinition& definition,
+            const TypeRegistry& registry)
+        {
+          for (const auto& field : definition.getFields())
+            fields.emplace_back(Field{field.first, field.second.type, registry.getType(field.second.type)});
+        }
+
       private:
-        void checkField(const meta::TypeDefinition::Field& field, const ValidationContext& context);
-        void checkFieldType(const meta::TypeDefinition::Field& field, const ValidationContext& context);
+        void checkField(const types::ComplexTypeNotion::Field& field, const ValidationContext& context);
+        void checkFieldType(const types::ComplexTypeNotion::Field& field, const ValidationContext& context);
 
         const ComplexTypeNotion& outer;
         const Node& node;
@@ -29,13 +38,17 @@ namespace scribe
 
 using namespace scribe;
 
-types::ComplexTypeNotion::ComplexTypeNotion(const TypeDefinition& def)
+types::ComplexTypeNotion::ComplexTypeNotion(const TypeDefinition& def, const TypeRegistry& registry)
   : definition(def)
-{}
+{
+  Checker::createFields(fields, definition, registry);
+}
 
-types::ComplexTypeNotion::ComplexTypeNotion(TypeDefinition&& def)
+types::ComplexTypeNotion::ComplexTypeNotion(TypeDefinition&& def, const TypeRegistry& registry)
   : definition(std::move(def))
-{}
+{
+  Checker::createFields(fields, definition, registry);
+}
 
 
 void types::ComplexTypeNotion::validate(const Entity& entity, const ValidationContext& context) const
@@ -66,32 +79,31 @@ void types::ComplexTypeNotion::Checker::checkReference()
 
 void types::ComplexTypeNotion::Checker::checkFields(const ValidationContext& context)
 {
-  for (const auto& field : outer.definition.getFields())
-    checkField(field.second, context);
+  for (const auto& field : outer.fields)
+    checkField(field, context);
 }
 
-void types::ComplexTypeNotion::Checker::checkField(const meta::TypeDefinition::Field& field, const ValidationContext& context)
+void types::ComplexTypeNotion::Checker::checkField(const types::ComplexTypeNotion::Field& field, const ValidationContext& context)
 {
   if (!node.hasChild(field.name))
     throw TypeValidationError(makeString() << "'" << outer.definition.getName() << "' must have field: '"
-        << field.name << "' (" << field.type << ")!");
+        << field.name << "' (" << field.typeName << ")!");
 
   checkFieldType(field, context);
 }
 
 void types::ComplexTypeNotion::Checker::checkFieldType(
-    const meta::TypeDefinition::Field& field,
+    const types::ComplexTypeNotion::Field& field,
     const ValidationContext& context)
 {
-  const auto& fieldNotion = context.registry.getType(field.type);
   try
   {
-    fieldNotion.validate(node.getChild(field.name), context);
+    field.type.validate(node.getChild(field.name), context);
   }
   catch(const ScribeException& ex)
   {
     throw TypeValidationError(makeString()
         << "In " << outer.definition.getName()
-        << " field '" << field.name << "' is not a(n) '" << field.type << "'! " << ex.what());
+        << " field '" << field.name << "' is not a(n) '" << field.typeName << "'! " << ex.what());
   }
 }
