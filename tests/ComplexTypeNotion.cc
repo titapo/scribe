@@ -120,4 +120,20 @@ TEST_CASE("complex type tests")
 
       REQUIRE_NOTHROW(notion.validate(node, ctx));
     }
+
+    SECTION("prohibit extra fields")
+    {
+        meta::TypeDefinition def("Person");
+        def.addField({"name", "string"});
+        types::ComplexTypeNotion notion{def, registry};
+
+        Node node;
+        meta::TypeReference("Person").addToNode(node);
+        node.addChild("name", Entity::create<Leaf<std::string>>("Joe"));
+        node.addChild("weight", Entity::create<Leaf<int>>(123));
+
+        REQUIRE_THROWS_AS(notion.validate(node, ctx), TypeValidationError);
+        REQUIRE_THROWS_WITH(notion.validate(node, ctx),
+            "Validation failed! 'Person' should not have field named: 'weight'!");
+    }
 }

@@ -26,9 +26,20 @@ namespace scribe
             fields.emplace_back(Field{field.first, field.second.type, registry.getType(field.second.type)});
         }
 
+        static bool contains(const types::ComplexTypeNotion::Fields& fields, const std::string& needle)
+        {
+          for (const auto& field : fields)
+          {
+            if (field.name == needle)
+              return true;
+          }
+          return false;
+        }
+
       private:
         void checkField(const types::ComplexTypeNotion::Field& field, const ValidationContext& context);
         void checkFieldType(const types::ComplexTypeNotion::Field& field, const ValidationContext& context);
+        void checkExtraFields();
 
         const ComplexTypeNotion& outer;
         const Node& node;
@@ -37,6 +48,7 @@ namespace scribe
 }
 
 using namespace scribe;
+
 
 types::ComplexTypeNotion::ComplexTypeNotion(const TypeDefinition& def, const TypeRegistry& registry)
   : definition(def)
@@ -81,6 +93,21 @@ void types::ComplexTypeNotion::Checker::checkFields(const ValidationContext& con
 {
   for (const auto& field : outer.fields)
     checkField(field, context);
+
+  checkExtraFields();
+}
+
+void types::ComplexTypeNotion::Checker::checkExtraFields()
+{
+  for (const auto& child : node)
+  {
+    if (child.first == meta::metaSpecifier)
+      continue;
+
+    if (!contains(outer.fields, child.first))
+      throw TypeValidationError(makeString() << "'" << outer.definition.getName() << "' should not have field named: '"
+         << child.first << "'!");
+  }
 }
 
 void types::ComplexTypeNotion::Checker::checkField(const types::ComplexTypeNotion::Field& field, const ValidationContext& context)
