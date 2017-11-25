@@ -10,7 +10,12 @@ namespace scribe
 
   struct ValidationContext
   {
-    const TypeRegistry& registry; // TODO it should not be kept here
+    enum class Strictness
+    {
+      Strict,
+      Lazy
+    };
+    Strictness strictness = Strictness::Strict;
   };
 
   class TypeValidationError : public ScribeException

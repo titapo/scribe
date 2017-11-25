@@ -19,7 +19,7 @@ TEST_CASE("check")
   {
     registry.registerType("bool", std::make_unique<types::LeafType<bool>>());
     const auto& type = registry.getType("bool");
-    REQUIRE_NOTHROW(type.validate(Leaf<bool>(true), {registry})); // This is not a good practice
+    REQUIRE_NOTHROW(type.validate(Leaf<bool>(true), {})); // This is not a good practice, call validate via TypeRegistry
   }
   
   SECTION("register type with the same name")

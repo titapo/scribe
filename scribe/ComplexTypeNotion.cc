@@ -94,7 +94,8 @@ void types::ComplexTypeNotion::Checker::checkFields(const ValidationContext& con
   for (const auto& field : outer.fields)
     checkField(field, context);
 
-  checkExtraFields();
+  if (context.strictness == ValidationContext::Strictness::Strict)
+    checkExtraFields();
 }
 
 void types::ComplexTypeNotion::Checker::checkExtraFields()

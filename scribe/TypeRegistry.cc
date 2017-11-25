@@ -52,7 +52,7 @@ void TypeRegistry::validate(const Entity& entity) const
   for (const auto& type : types)
   {
     try {
-      type.second->validate(entity, ValidationContext{*this});
+      type.second->validate(entity, ValidationContext{});
       return;
     }
     catch (const ScribeException& ex)
