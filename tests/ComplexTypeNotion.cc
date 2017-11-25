@@ -78,7 +78,7 @@ TEST_CASE("complex type tests")
         meta::TypeReference("Person").addToNode(node);
         node.addChild("name", Entity::create<Leaf<int>>(1));
 
-        REQUIRE_THROWS_AS(notion.validate(node, ctx), TypeValidationError); // TODO ValidationError
+        REQUIRE_THROWS_AS(notion.validate(node, ctx), TypeValidationError);
         REQUIRE_THROWS_WITH(notion.validate(node, ctx),
             "Validation failed! In Person field 'name' is not a(n) 'string'! Not a proper leaf!");
     }
@@ -94,5 +94,30 @@ TEST_CASE("complex type tests")
         node.addChild("name", Entity::create<Leaf<std::string>>("Joe"));
 
         REQUIRE_NOTHROW(notion.validate(node, ctx));
+    }
+
+    SECTION("validate nested type")
+    {
+      meta::TypeDefinition addr("Address");
+      addr.addField({"country", "string"});
+      addr.addField({"street", "string"});
+      registry.registerType("Address", std::make_unique<types::ComplexTypeNotion>(addr, registry));
+
+      meta::TypeDefinition person("Person");
+      person.addField({"name", "string"});
+      person.addField({"address", "Address"});
+      types::ComplexTypeNotion notion{person, registry};
+
+      auto addrNode = std::make_unique<Node>();
+      meta::TypeReference("Address").addToNode(*addrNode);
+      addrNode->addChild("country", Entity::create<Leaf<std::string>>("XYZ"));
+      addrNode->addChild("street", Entity::create<Leaf<std::string>>("One Street"));
+
+      Node node;
+      meta::TypeReference("Person").addToNode(node);
+      node.addChild("name", Entity::create<Leaf<std::string>>("Joe"));
+      node.addChild("address", std::move(addrNode));
+
+      REQUIRE_NOTHROW(notion.validate(node, ctx));
     }
 }
