@@ -46,5 +46,22 @@ namespace scribe
             converter_type converter;
 
     };
+
+    struct NonCopyable
+    {
+      NonCopyable() = default;
+      NonCopyable(const NonCopyable&) = delete;
+      NonCopyable& operator=(const NonCopyable&) = delete;
+    };
+
+    struct NonMovable
+    {
+      NonMovable() = default;
+      NonMovable(const NonMovable&) = delete;
+      NonMovable& operator=(const NonMovable&) = delete;
+    };
+
+    struct NonTransferable : NonCopyable, NonMovable
+    {};
 }
 #endif

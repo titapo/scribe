@@ -12,7 +12,7 @@ namespace scribe
   {
     // This class stores references to typenotions of fields described in definition
     // So lifetime of TypeRegistry must be longer than ComplexTypeNotion instances
-    class ComplexTypeNotion : public RegisterableTypeNotion // TODO non-transferable
+    class ComplexTypeNotion : public RegisterableTypeNotion, NonTransferable
     {
       public:
         using TypeDefinition = meta::TypeDefinition;
