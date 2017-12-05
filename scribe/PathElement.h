@@ -56,7 +56,6 @@ namespace scribe
     private:
       const index_t index;
   };
-
 }
 
 #endif
