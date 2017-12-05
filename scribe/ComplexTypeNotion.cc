@@ -2,6 +2,8 @@
 #include <scribe/makeString.h>
 #include <scribe/TypeRegistry.h>
 
+#include <algorithm>
+
 namespace scribe
 {
   namespace types
@@ -18,22 +20,26 @@ namespace scribe
         void checkFields(const ValidationContext& context);
 
         // FIXME it is not the best place for it
-        static void createFields(types::ComplexTypeNotion::Fields& fields,
+        static void createFieldsFromDefinition(types::ComplexTypeNotion::Fields& fields,
             const types::ComplexTypeNotion::TypeDefinition& definition,
             const TypeRegistry& registry)
         {
-          for (const auto& field : definition.getFields())
-            fields.emplace_back(Field{field.first, field.second.type, registry.getType(field.second.type)});
+          auto createField = [&registry](const auto& field)
+            {return Field{field.first, field.second.type, registry.getType(field.second.type)};};
+
+          std::transform(definition.getFields().begin(), definition.getFields().end(),
+              std::back_inserter(fields), createField);
         }
 
-        static bool contains(const types::ComplexTypeNotion::Fields& fields, const std::string& needle)
+        static auto hasSameName(const std::string& needle)
         {
-          for (const auto& field : fields)
-          {
-            if (field.name == needle)
-              return true;
-          }
-          return false;
+          return [&needle](const auto& field)
+          { return field.name == needle; };
+        }
+
+        static bool containsFieldWithName(const types::ComplexTypeNotion::Fields& fields, const std::string& needle)
+        {
+          return std::any_of(fields.begin(), fields.end(), hasSameName(needle));
         }
 
       private:
@@ -53,13 +59,13 @@ using namespace scribe;
 types::ComplexTypeNotion::ComplexTypeNotion(const TypeDefinition& def, const TypeRegistry& registry)
   : definition(def)
 {
-  Checker::createFields(fields, definition, registry);
+  Checker::createFieldsFromDefinition(fields, definition, registry);
 }
 
 types::ComplexTypeNotion::ComplexTypeNotion(TypeDefinition&& def, const TypeRegistry& registry)
   : definition(std::move(def))
 {
-  Checker::createFields(fields, definition, registry);
+  Checker::createFieldsFromDefinition(fields, definition, registry);
 }
 
 
@@ -105,7 +111,7 @@ void types::ComplexTypeNotion::Checker::checkExtraFields()
     if (child.first == meta::metaSpecifier)
       continue;
 
-    if (!contains(outer.fields, child.first))
+    if (!containsFieldWithName(outer.fields, child.first))
       throw TypeValidationError(makeString() << "'" << outer.definition.getName() << "' should not have field named: '"
          << child.first << "'!");
   }
