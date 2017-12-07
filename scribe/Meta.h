@@ -3,6 +3,7 @@
 
 #include <scribe/Node.h>
 #include <map>
+#include <vector>
 
 namespace scribe
 {
@@ -35,6 +36,8 @@ namespace scribe
     {
         public:
           using TypeName = std::string;
+          using GenericName = std::string;
+          using Generics = std::vector<GenericName>;
 
           explicit TypeDefinition(const std::string& defName)
             : name(defName)
@@ -58,17 +61,24 @@ namespace scribe
           { return name; }
 
           void addToNode(Node& node) const override;
-          void addField(Field&& field);
 
+          void addField(Field&& field);
           const Fields& getFields() const
           {
             return fields;
           }
 
+          void addGeneric(const GenericName& generic)
+          { generics.push_back(generic); }
+
+          const Generics& getGenerics() const
+          { return generics; }
+
           static TypeDefinition fromNode(const Node& node);
 
         private:
           std::string name;
+          Generics generics;
           // inherits/parents
           Fields fields;
           // methods

@@ -1,5 +1,6 @@
 #include "Meta.h"
 #include "Leaf.h"
+#include <scribe/Array.h>
 #include <scribe/makeString.h>
 #include <scribe/TypeNotion.h>
 
@@ -38,7 +39,18 @@ void TypeDefinition::addToNode(Node& node) const
   auto meta = std::make_unique<Node>();
   meta->addChild(specifierKey, Entity::create<Leaf<std::string>>("type_definition"));
   meta->addChild("name", Entity::create<Leaf<std::string>>(name));
+
+  if (!generics.empty())
+  {
+    auto genericsList = std::make_unique<Array>();
+    for (const auto& generic : generics)
+    {
+      genericsList->append(Entity::create<Leaf<std::string>>(generic));
+    }
+    meta->addChild("generics", std::move(genericsList));
+  }
   node.addChild(std::string(metaSpecifier), std::move(meta));
+
   if (!fields.empty())
   {
     auto fieldsNode = std::make_unique<Node>();
@@ -59,19 +71,37 @@ void TypeDefinition::addField(TypeDefinition::Field&& field)
   fields.emplace(field.name, std::move(field));
 }
 
+namespace
+{
+  void loadGenericsFromMeta(TypeDefinition& def, const Node& meta)
+  {
+    if (!meta.hasChild("generics"))
+      return;
+
+    const auto& generics = types::ArrayType().get(meta.getChild("generics"));
+    for (const auto& generic : generics)
+      def.addGeneric(types::LeafType<std::string>().get(generic).getValue());
+  }
+
+  void loadFieldsFromNode(TypeDefinition& def, const Node& node)
+  {
+    if (!node.hasChild("fields"))
+      return;
+
+    const auto& fieldsNode = types::NodeType().get(node.getChild("fields"));
+    for (const auto& fieldEntry : fieldsNode)
+      def.addField({fieldEntry.first, types::LeafType<std::string>().get(fieldEntry.second).getValue()});
+  }
+}
+
 TypeDefinition TypeDefinition::fromNode(const Node& node)
 {
   const auto& meta = getMeta(node);
   assertMetaSpecifier(meta, "type_definition");
   TypeDefinition def(types::LeafType<std::string>().get(meta.getChild("name")).getValue());
-  if (!node.hasChild("fields"))
-    return def;
 
-  const auto& fieldsNode = types::NodeType().get(node.getChild("fields"));
-  for (const auto& fieldEntry : fieldsNode)
-  {
-    def.addField({fieldEntry.first, types::LeafType<std::string>().get(fieldEntry.second).getValue()});
-  }
+  loadGenericsFromMeta(def, meta);
+  loadFieldsFromNode(def, node);
   return def;
 }
 

@@ -1,7 +1,9 @@
 #define CATCH_CONFIG_MAIN
 #include <tests/catch.hpp>
+#include <scribe/Array.h>
 #include <scribe/Meta.h>
 #include <scribe/Leaf.h>
+#include <scribe/TypeNotion.h>
 
 using namespace scribe;
 
@@ -28,6 +30,7 @@ TEST_CASE("type definition -- add to node")
     REQUIRE(meta.hasChild("name"));
     REQUIRE(dynamic_cast<const Leaf<std::string>&>(meta.getChild("name")).getValue() == "Person");
     REQUIRE(!node.hasChild("fields"));
+    REQUIRE(!meta.hasChild("generics"));
   }
 
   SECTION("fields")
@@ -49,6 +52,17 @@ TEST_CASE("type definition -- add to node")
     def.addField({"name", "string"});
     REQUIRE_THROWS_AS(def.addField({"name", "unsigned"}), meta::MetaException);
     REQUIRE_THROWS_WITH(def.addField({"name", "unsigned"}), "Field already exists: 'name'!");
+  }
+
+  SECTION("can have generic (type) parameters")
+  {
+    def.addGeneric("T");
+    def.addGeneric("U");
+    def.addToNode(node);
+    const auto& meta = types::NodeType().get(node.getChild(meta::metaSpecifier));
+    const auto& generics = types::ArrayType().get(meta.getChild("generics"));
+    REQUIRE(types::LeafType<std::string>().get(generics.getChild(0)).getValue() == "T");
+    REQUIRE(types::LeafType<std::string>().get(generics.getChild(1)).getValue() == "U");
   }
 }
 
@@ -115,6 +129,22 @@ TEST_CASE("type definition -- from node")
     REQUIRE_THROWS_AS(meta::TypeDefinition::fromNode(node), ScribeException);
     REQUIRE_THROWS_WITH(meta::TypeDefinition::fromNode(node),
         "Invalid meta specifier: 'other thing' (expected: 'type_definition')!");
+  }
+
+  SECTION("to node and back -- generics")
+  {
+    auto def = getPersonDefinition();
+    def.addGeneric("T");
+    def.addGeneric("U");
+
+    Node node;
+    def.addToNode(node);
+
+    const auto result = meta::TypeDefinition::fromNode(node);
+    const auto& generics = result.getGenerics();
+    REQUIRE(generics.size() == 2);
+    REQUIRE(generics.at(0) == "T");
+    REQUIRE(generics.at(1) == "U");
   }
 }
 
