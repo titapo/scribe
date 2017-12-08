@@ -64,6 +64,46 @@ TEST_CASE("type definition -- add to node")
     REQUIRE(types::LeafType<std::string>().get(generics.getChild(0)).getValue() == "T");
     REQUIRE(types::LeafType<std::string>().get(generics.getChild(1)).getValue() == "U");
   }
+
+  SECTION("generic parameters must have different names")
+  {
+    def.addGeneric("T");
+    REQUIRE_THROWS_AS(def.addGeneric("T"), meta::MetaException);
+    REQUIRE_THROWS_WITH(def.addGeneric("T"), "'T' is repeated!");
+  }
+
+  SECTION("specify generics")
+  {
+    def.addField({"something", "T"});
+    def.addGeneric("T");
+    const auto& specified = def.specialize({"integer"});
+    REQUIRE(specified.getName() == "Person<integer>");
+    REQUIRE(specified.getGenerics().size() == 0);
+    REQUIRE(specified.getFields().size() == def.getFields().size());
+    REQUIRE(specified.getFields().find("something")->second.type == "integer");
+  }
+
+  SECTION("specify generics for a non-generic definition")
+  {
+    REQUIRE_THROWS_AS(def.specialize({}), meta::MetaException);
+    REQUIRE_THROWS_WITH(def.specialize({}), "Cannot specialize a non-generic definition");
+  }
+
+  SECTION("specify more generics than expected")
+  {
+    def.addGeneric("T");
+    REQUIRE_THROWS_AS(def.specialize({"T", "U"}), meta::MetaException);
+    REQUIRE_THROWS_WITH(def.specialize({"T", "U"}), "'Person' expected 1 generic(s), but 2 provided!");
+  }
+
+  SECTION("specify less generics than expected")
+  {
+    def.addGeneric("T");
+    def.addGeneric("U");
+    REQUIRE_THROWS_AS(def.specialize({"T"}), meta::MetaException);
+    REQUIRE_THROWS_WITH(def.specialize({"T"}), "'Person' expected 2 generic(s), but 1 provided!");
+  }
+  // SECTION("specify less generics")
 }
 
 #include <scribe/TypeNotion.h>

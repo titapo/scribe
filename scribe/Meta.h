@@ -12,6 +12,7 @@ namespace scribe
 
     constexpr char metaSpecifier[] = "^^meta^^";
     constexpr char specifierKey[] = "?";
+    using TypeName = std::string;
 
     class MetaException : public ScribeException
     {
@@ -62,17 +63,19 @@ namespace scribe
 
           void addToNode(Node& node) const override;
 
+          void addField(const Field& field);
           void addField(Field&& field);
           const Fields& getFields() const
           {
             return fields;
           }
 
-          void addGeneric(const GenericName& generic)
-          { generics.push_back(generic); }
+          void addGeneric(const GenericName& generic);
 
           const Generics& getGenerics() const
           { return generics; }
+
+          TypeDefinition specialize(const std::vector<TypeName>& specializations) const; // TODO free function
 
           static TypeDefinition fromNode(const Node& node);
 

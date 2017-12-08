@@ -1,8 +1,10 @@
 #include "Meta.h"
 #include "Leaf.h"
 #include <scribe/Array.h>
-#include <scribe/makeString.h>
 #include <scribe/TypeNotion.h>
+#include <scribe/makeString.h>
+#include <algorithm>
+#include <numeric> // for accumulate
 
 using namespace scribe;
 using namespace scribe::meta;
@@ -23,7 +25,7 @@ void assertMetaSpecifier(const Node& meta, const std::string& expectedSpecifier)
 
   const auto& specifier = types::LeafType<std::string>().get(meta.getChild(specifierKey)).getValue();
   if (specifier != expectedSpecifier)
-    throw meta::MetaException(makeString() << "Invalid meta specifier: '" << specifier
+    throw MetaException(makeString() << "Invalid meta specifier: '" << specifier
         << "' (expected: '" << expectedSpecifier<< "')!");
 }
 
@@ -63,12 +65,28 @@ void TypeDefinition::addToNode(Node& node) const
   }
 }
 
+void TypeDefinition::addField(const TypeDefinition::Field& field)
+{
+  if (fields.find(field.name) != fields.end())
+    throw MetaException(makeString() << "Field already exists: '" << field.name << "'!");
+
+  fields.emplace(field.name, field);
+}
+
 void TypeDefinition::addField(TypeDefinition::Field&& field)
 {
   if (fields.find(field.name) != fields.end())
     throw MetaException(makeString() << "Field already exists: '" << field.name << "'!");
 
   fields.emplace(field.name, std::move(field));
+}
+
+void TypeDefinition::addGeneric(const GenericName& generic)
+{
+  if (std::find(generics.begin(), generics.end(), generic) != generics.end())
+    throw MetaException(makeString() << "'" << generic << "' is repeated!");
+
+  generics.push_back(generic);
 }
 
 namespace
@@ -103,6 +121,68 @@ TypeDefinition TypeDefinition::fromNode(const Node& node)
   loadGenericsFromMeta(def, meta);
   loadFieldsFromNode(def, node);
   return def;
+}
+
+namespace
+{
+  // TODO move to makeString()?
+  template <typename Range>
+  std::string join(const Range& range, const std::string& joiner)
+  {
+    if (range.empty())
+      return {};
+
+    return std::accumulate(range.begin() + 1, range.end(),
+        range.at(0), [&joiner](const auto& a, const auto& b) -> std::string
+        { return makeString() << a << joiner << b; });
+  }
+
+  // TODO common
+  template <typename Range>
+  auto find_in(const Range& range, const typename Range::value_type& needle)
+  {
+    return std::find(range.begin(), range.end(), needle);
+  }
+
+  TypeDefinition::Field specializeField(const TypeDefinition& original, const TypeDefinition::Field& field, const std::vector<TypeName> specializations)
+  {
+    const auto referred = find_in(original.getGenerics(), field.type);
+    if (referred == original.getGenerics().end())
+      return {field};
+
+    const auto& index = std::distance(original.getGenerics().begin(), referred);
+    return {field.name, specializations.at(index)};
+  }
+  void specializeFields(const TypeDefinition& original, const std::vector<TypeName> specializations, TypeDefinition& specialized)
+  {
+    for (const auto& field : original.getFields())
+      specialized.addField(specializeField(original, field.second, specializations));
+  }
+
+  std::string specializeName(const TypeName& type, const std::vector<TypeName>& specializations)
+  {
+    return makeString() << type << "<"<< join(specializations, ", ") << ">";
+  }
+
+  TypeDefinition specializeTypeDefinition(const TypeDefinition& original, const std::vector<TypeName>& specializations)
+  {
+    TypeDefinition def{specializeName(original.getName(), specializations)};
+    specializeFields(original, specializations, def);
+    return def;
+  }
+}
+
+TypeDefinition TypeDefinition::specialize(const std::vector<TypeName>& specializations) const
+{
+  if (generics.size() == 0) // TODO isGeneric()
+    throw MetaException("Cannot specialize a non-generic definition");
+  
+  if (specializations.size() != generics.size())
+    throw MetaException(makeString() << "'" << getName() << "' expected " << generics.size()
+        << " generic(s), but " << specializations.size() << " provided!");
+
+  return specializeTypeDefinition(*this, specializations);
+
 }
 
 void TypeReference::addToNode(Node& node) const
