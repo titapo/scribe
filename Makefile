@@ -6,7 +6,8 @@ CXXFLAGS= \
 		  -Wduplicated-branches -Wduplicated-cond \
 
 
-CATCH_VERSION=v1.10.0
+# CATCH_VERSION=v1.10.0
+CATCH_VERSION=v2.0.1
 SCRIBE_NAME=scribe
 
 all: lib
@@ -83,7 +84,8 @@ clean-tests:
 init: download-catch
 
 download-catch:
-	wget https://raw.githubusercontent.com/philsquared/Catch/$(CATCH_VERSION)/single_include/catch.hpp --output-document=tests/catch.hpp
+	wget https://github.com/catchorg/Catch2/releases/download/v2.0.1/catch.hpp --output-document=tests/catch.hpp
+	# wget https://raw.githubusercontent.com/philsquared/Catch/$(CATCH_VERSION)/single_include/catch.hpp --output-document=tests/catch.hpp
 
 .PHONY: clean
 clean: clean-lib clean-objs clean-tests

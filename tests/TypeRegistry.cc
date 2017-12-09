@@ -1,5 +1,4 @@
-#define CATCH_CONFIG_MAIN
-#include <tests/catch.hpp>
+#include <tests/common.h>
 #include <scribe/TypeRegistry.h>
 #include <scribe/RegisterableTypeNotion.h>
 #include <scribe/exception.h>

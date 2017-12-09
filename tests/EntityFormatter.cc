@@ -1,5 +1,4 @@
-#define CATCH_CONFIG_MAIN
-#include <tests/catch.hpp>
+#include <tests/common.h>
 #include <scribe/Leaf.h>
 #include <scribe/Node.h>
 #include <scribe/Array.h>

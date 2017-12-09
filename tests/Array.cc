@@ -1,10 +1,10 @@
-#define CATCH_CONFIG_MAIN
-#include <tests/catch.hpp>
+#include <tests/common.h>
 #include <scribe/Array.h>
 #include <scribe/Leaf.h>
 #include <scribe/exception.h>
 
 using namespace scribe;
+using namespace Catch::Matchers;
 
 TEST_CASE("empty array")
 {
@@ -15,8 +15,7 @@ TEST_CASE("empty array")
 TEST_CASE("get over-indexed element")
 {
     Array array;
-    REQUIRE_THROWS_AS(array.getChild(2), NoSuchChild);
-    REQUIRE_THROWS_WITH(array.getChild(2), "No element indexed by: 2");
+    REQUIRE_THROWS_MATCHES(array.getChild(2), NoSuchChild, WithMessage("No element indexed by: 2"));
 }
 
 TEST_CASE("append element")
