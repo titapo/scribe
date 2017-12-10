@@ -2,6 +2,7 @@
 #define SCRIBE_META_H_INCLUDED
 
 #include <scribe/Node.h>
+#include <scribe/std_polyfill.h> // for MetaConcept
 #include <map>
 #include <vector>
 
@@ -9,7 +10,6 @@ namespace scribe
 {
   namespace meta
   {
-
     constexpr char metaSpecifier[] = "^^meta^^";
     constexpr char specifierKey[] = "?";
     using TypeName = std::string;
@@ -26,14 +26,22 @@ namespace scribe
         TypeReference
     };
 
-    class MetaBase
-    {
-        public:
-            virtual void addToNode(Node& node) const = 0;
-            virtual ~MetaBase() {}
-    };
+    // Meta concept
+    template <typename T>
+    using MetaConcept = std::void_t<
+      decltype(std::declval<const T>().addToNode(std::declval<Node&>())),
+      std::enable_if_t<
+        std::is_same_v<decltype(T::fromNode(std::declval<const Node&>())), T>
+      >
+    >;
 
-    class TypeDefinition : public MetaBase
+    template <typename T, typename = void>
+    struct ImplementsMetaConcept : std::false_type {};
+
+    template <typename T>
+    struct ImplementsMetaConcept<T, MetaConcept<T>> : std::true_type {};
+
+    class TypeDefinition
     {
         public:
           using TypeName = std::string;
@@ -61,7 +69,7 @@ namespace scribe
           inline std::string getName() const
           { return name; }
 
-          void addToNode(Node& node) const override;
+          void addToNode(Node& node) const;
 
           void addField(const Field& field);
           void addField(Field&& field);
@@ -87,7 +95,9 @@ namespace scribe
           // methods
     };
 
-    class TypeReference : public MetaBase
+    static_assert(ImplementsMetaConcept<TypeDefinition>::value, "Expected MetaConcept implementation");
+
+    class TypeReference
     {
         public:
           using TypeName = std::string;
@@ -98,7 +108,7 @@ namespace scribe
 
           TypeName getTypename() const;
 
-          void addToNode(Node& node) const override;
+          void addToNode(Node& node) const;
           static TypeReference fromNode(const Node& node);
 
         private:
@@ -106,6 +116,7 @@ namespace scribe
 
     };
 
+    static_assert(ImplementsMetaConcept<TypeReference>::value, "Expected MetaConcept implementation");
   }
 
 }
