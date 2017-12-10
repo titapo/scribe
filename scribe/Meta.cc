@@ -56,9 +56,9 @@ void TypeDefinition::addToNode(Node& node) const
   if (!fields.empty())
   {
     auto fieldsNode = std::make_unique<Node>();
-    for (const auto& field : fields)
+    for (const auto& field : fields | pick_second())
     {
-      fieldsNode->addChild(field.first, Entity::create<Leaf<std::string>>(field.second.type.get()));
+      fieldsNode->addChild(field.name, Entity::create<Leaf<std::string>>(field.type.get()));
     }
       
     node.addChild("fields", std::move(fieldsNode));
@@ -83,7 +83,7 @@ void TypeDefinition::addField(TypeDefinition::Field&& field)
 
 void TypeDefinition::addGeneric(const GenericName& generic)
 {
-  if (std::find(generics.begin(), generics.end(), generic) != generics.end())
+  if (contains(generics, generic))
     throw MetaException(makeString() << "'" << generic << "' is repeated!");
 
   generics.push_back(generic);
@@ -145,13 +145,6 @@ namespace
   };
 
 
-  // TODO common
-  template <typename Range>
-  auto find_in(const Range& range, const typename Range::value_type& needle)
-  {
-    return std::find(range.begin(), range.end(), needle);
-  }
-
   TypeDefinition::Field specializeField(const TypeDefinition& original, const TypeDefinition::Field& field, const std::vector<TypeName> specializations)
   {
     const auto referred = find_in(original.getGenerics(), field.type.get());
@@ -163,8 +156,8 @@ namespace
   }
   void specializeFields(const TypeDefinition& original, const std::vector<TypeName> specializations, TypeDefinition& specialized)
   {
-    for (const auto& field : original.getFields())
-      specialized.addField(specializeField(original, field.second, specializations));
+    for (const auto& field : original.getFields() | pick_second())
+      specialized.addField(specializeField(original, field, specializations));
   }
 
   TypeName specializeName(const TypeName& type, const std::vector<TypeName>& specializations)

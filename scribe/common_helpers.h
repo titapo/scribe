@@ -2,6 +2,8 @@
 #define SCRIBE_COMMON_HELPERS_H_INCLUDED
 
 #include <type_traits>
+#include <algorithm>
+
 namespace scribe
 {
     template <typename F>
@@ -76,6 +78,18 @@ namespace scribe
       return range_view<Range, Transformation>(range);
     }
 
+    // some common view adaptors
+    template <size_t N>
+    struct pick_nth
+    {
+      template <typename Iterator>
+      auto operator()(const Iterator& iter)
+      { return std::get<N>(*iter); }
+    };
+
+    using pick_first = pick_nth<0>;
+    using pick_second = pick_nth<1>;
+
 
     struct NonCopyable
     {
@@ -93,5 +107,19 @@ namespace scribe
 
     struct NonTransferable : NonCopyable, NonMovable
     {};
+
+    // algorithm helpers
+    // shortcut for finding something
+    template <typename Range>
+    auto find_in(const Range& range, const typename Range::value_type& needle)
+    {
+      return std::find(range.begin(), range.end(), needle);
+    }
+
+    template <typename Range>
+    bool contains(const Range& range, const typename Range::value_type& needle)
+    {
+      return find_in(range, needle) != range.end();
+    }
 }
 #endif
