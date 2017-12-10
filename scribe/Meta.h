@@ -41,17 +41,17 @@ namespace scribe
     template <typename T>
     struct ImplementsMetaConcept<T, MetaConcept<T>> : std::true_type {};
 
-    class TypeDefinition
+    class BasicTypeDefinition
     {
         public:
           using GenericName = std::string;
           using Generics = std::vector<GenericName>;
 
-          explicit TypeDefinition(const std::string& defName)
+          explicit BasicTypeDefinition(const std::string& defName)
             : name(TypeName(defName))
           {}
 
-          explicit TypeDefinition(const TypeName& typeName)
+          explicit BasicTypeDefinition(const TypeName& typeName)
             : name(typeName)
           {}
 
@@ -72,8 +72,6 @@ namespace scribe
           inline TypeName getName() const
           { return name; }
 
-          void addToNode(Node& node) const;
-
           void addField(const Field& field);
           void addField(Field&& field);
           const Fields& getFields() const
@@ -86,9 +84,8 @@ namespace scribe
           const Generics& getGenerics() const
           { return generics; }
 
-          TypeDefinition specialize(const std::vector<TypeName>& specializations) const; // TODO free function
+          BasicTypeDefinition specialize(const std::vector<TypeName>& specializations) const; // TODO free function
 
-          static TypeDefinition fromNode(const Node& node);
 
         private:
           TypeName name;
@@ -96,6 +93,15 @@ namespace scribe
           // inherits/parents
           Fields fields;
           // methods
+    };
+
+    class TypeDefinition : public BasicTypeDefinition
+    {
+      public:
+        using BasicTypeDefinition::BasicTypeDefinition;
+
+        void addToNode(Node& node) const;
+        static TypeDefinition fromNode(const Node& node);
     };
 
     static_assert(ImplementsMetaConcept<TypeDefinition>::value, "Expected MetaConcept implementation");

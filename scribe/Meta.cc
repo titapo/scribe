@@ -40,12 +40,12 @@ void TypeDefinition::addToNode(Node& node) const
 {
   auto meta = std::make_unique<Node>();
   meta->addChild(specifierKey, Entity::create<Leaf<std::string>>("type_definition"));
-  meta->addChild("name", Entity::create<Leaf<std::string>>(name.get()));
+  meta->addChild("name", Entity::create<Leaf<std::string>>(getName().get()));
 
-  if (!generics.empty())
+  if (!getGenerics().empty())
   {
     auto genericsList = std::make_unique<Array>();
-    for (const auto& generic : generics)
+    for (const auto& generic : getGenerics())
     {
       genericsList->append(Entity::create<Leaf<std::string>>(generic));
     }
@@ -53,10 +53,10 @@ void TypeDefinition::addToNode(Node& node) const
   }
   node.addChild(std::string(metaSpecifier), std::move(meta));
 
-  if (!fields.empty())
+  if (!getFields().empty())
   {
     auto fieldsNode = std::make_unique<Node>();
-    for (const auto& field : fields | pick_second())
+    for (const auto& field : getFields() | pick_second())
     {
       fieldsNode->addChild(field.name, Entity::create<Leaf<std::string>>(field.type.get()));
     }
@@ -65,7 +65,7 @@ void TypeDefinition::addToNode(Node& node) const
   }
 }
 
-void TypeDefinition::addField(const TypeDefinition::Field& field)
+void BasicTypeDefinition::addField(const BasicTypeDefinition::Field& field)
 {
   if (fields.find(field.name) != fields.end())
     throw MetaException(makeString() << "Field already exists: '" << field.name << "'!");
@@ -73,7 +73,7 @@ void TypeDefinition::addField(const TypeDefinition::Field& field)
   fields.emplace(field.name, field);
 }
 
-void TypeDefinition::addField(TypeDefinition::Field&& field)
+void BasicTypeDefinition::addField(BasicTypeDefinition::Field&& field)
 {
   if (fields.find(field.name) != fields.end())
     throw MetaException(makeString() << "Field already exists: '" << field.name << "'!");
@@ -81,7 +81,7 @@ void TypeDefinition::addField(TypeDefinition::Field&& field)
   fields.emplace(field.name, std::move(field));
 }
 
-void TypeDefinition::addGeneric(const GenericName& generic)
+void BasicTypeDefinition::addGeneric(const GenericName& generic)
 {
   if (contains(generics, generic))
     throw MetaException(makeString() << "'" << generic << "' is repeated!");
@@ -91,7 +91,7 @@ void TypeDefinition::addGeneric(const GenericName& generic)
 
 namespace
 {
-  void loadGenericsFromMeta(TypeDefinition& def, const Node& meta)
+  void loadGenericsFromMeta(BasicTypeDefinition& def, const Node& meta)
   {
     if (!meta.hasChild("generics"))
       return;
@@ -101,14 +101,14 @@ namespace
       def.addGeneric(types::LeafType<std::string>().get(generic).getValue());
   }
 
-  void loadFieldsFromNode(TypeDefinition& def, const Node& node)
+  void loadFieldsFromNode(BasicTypeDefinition& def, const Node& node)
   {
     if (!node.hasChild("fields"))
       return;
 
     const auto& fieldsNode = types::NodeType().get(node.getChild("fields"));
     for (const auto& fieldEntry : fieldsNode)
-      def.addField(TypeDefinition::Field(fieldEntry.first, TypeName(types::LeafType<std::string>().get(fieldEntry.second).getValue())));
+      def.addField(BasicTypeDefinition::Field(fieldEntry.first, TypeName(types::LeafType<std::string>().get(fieldEntry.second).getValue())));
   }
 }
 
@@ -145,7 +145,7 @@ namespace
   };
 
 
-  TypeDefinition::Field specializeField(const TypeDefinition& original, const TypeDefinition::Field& field, const std::vector<TypeName> specializations)
+  BasicTypeDefinition::Field specializeField(const BasicTypeDefinition& original, const BasicTypeDefinition::Field& field, const std::vector<TypeName> specializations)
   {
     const auto referred = find_in(original.getGenerics(), field.type.get());
     if (referred == original.getGenerics().end())
@@ -154,7 +154,7 @@ namespace
     const auto& index = std::distance(original.getGenerics().begin(), referred);
     return {field.name, TypeName(specializations.at(index))};
   }
-  void specializeFields(const TypeDefinition& original, const std::vector<TypeName> specializations, TypeDefinition& specialized)
+  void specializeFields(const BasicTypeDefinition& original, const std::vector<TypeName> specializations, BasicTypeDefinition& specialized)
   {
     for (const auto& field : original.getFields() | pick_second())
       specialized.addField(specializeField(original, field, specializations));
@@ -165,15 +165,15 @@ namespace
     return TypeName(makeString() << type.get() << "<"<< join(specializations | to_underlying(), ", ") << ">");
   }
 
-  TypeDefinition specializeTypeDefinition(const TypeDefinition& original, const std::vector<TypeName>& specializations)
+  BasicTypeDefinition specializeTypeDefinition(const BasicTypeDefinition& original, const std::vector<TypeName>& specializations)
   {
-    TypeDefinition def{specializeName(original.getName(), specializations)};
+    BasicTypeDefinition def{specializeName(original.getName(), specializations)};
     specializeFields(original, specializations, def);
     return def;
   }
 }
 
-TypeDefinition TypeDefinition::specialize(const std::vector<TypeName>& specializations) const
+BasicTypeDefinition BasicTypeDefinition::specialize(const std::vector<TypeName>& specializations) const
 {
   if (generics.size() == 0) // TODO isGeneric()
     throw MetaException("Cannot specialize a non-generic definition");
