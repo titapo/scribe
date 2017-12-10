@@ -49,7 +49,7 @@ TEST_CASE("complex type tests")
     SECTION("validate node without required field")
     {
         meta::TypeDefinition def("Person");
-        def.addField({"name", "string"});
+        def.addField({"name", TypeName("string")});
         types::ComplexTypeNotion notion{def, registry};
 
         Node node;
@@ -62,7 +62,7 @@ TEST_CASE("complex type tests")
     SECTION("validate node with non-registered typed field")
     {
         meta::TypeDefinition def("Person");
-        def.addField({"name", "mystring"});
+        def.addField({"name", TypeName("mystring")});
         REQUIRE_THROWS_AS(types::ComplexTypeNotion(def, registry), ScribeException);
         REQUIRE_THROWS_WITH(types::ComplexTypeNotion(def, registry), "Type 'mystring' is not registered!");
     }
@@ -70,7 +70,7 @@ TEST_CASE("complex type tests")
     SECTION("validate node with wrong typed field")
     {
         meta::TypeDefinition def("Person");
-        def.addField({"name", "string"});
+        def.addField({"name", TypeName("string")});
         types::ComplexTypeNotion notion{def, registry};
 
         Node node;
@@ -85,7 +85,7 @@ TEST_CASE("complex type tests")
     SECTION("validate node with wrong typed field")
     {
         meta::TypeDefinition def("Person");
-        def.addField({"name", "string"});
+        def.addField({"name", TypeName("string")});
         types::ComplexTypeNotion notion{def, registry};
 
         Node node;
@@ -98,13 +98,13 @@ TEST_CASE("complex type tests")
     SECTION("validate nested type")
     {
       meta::TypeDefinition addr("Address");
-      addr.addField({"country", "string"});
-      addr.addField({"street", "string"});
+      addr.addField({"country", TypeName("string")});
+      addr.addField({"street", TypeName("string")});
       registry.registerType("Address", std::make_unique<types::ComplexTypeNotion>(addr, registry));
 
       meta::TypeDefinition person("Person");
-      person.addField({"name", "string"});
-      person.addField({"address", "Address"});
+      person.addField({"name", TypeName("string")});
+      person.addField({"address", TypeName("Address")});
       types::ComplexTypeNotion notion{person, registry};
 
       auto addrNode = std::make_unique<Node>();
@@ -123,7 +123,7 @@ TEST_CASE("complex type tests")
     SECTION("prohibit extra fields")
     {
         meta::TypeDefinition def("Person");
-        def.addField({"name", "string"});
+        def.addField({"name", TypeName("string")});
         types::ComplexTypeNotion notion{def, registry};
 
         Node node;
@@ -139,7 +139,7 @@ TEST_CASE("complex type tests")
     SECTION("allow extra fields in case of Lazy validation")
     {
         meta::TypeDefinition def("Person");
-        def.addField({"name", "string"});
+        def.addField({"name", TypeName("string")});
         types::ComplexTypeNotion notion{def, registry};
 
         Node node;

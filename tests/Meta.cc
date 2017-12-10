@@ -9,8 +9,8 @@ using namespace scribe;
 meta::TypeDefinition getPersonDefinition()
 {
   meta::TypeDefinition def("Person");
-  def.addField({"name", "string"});
-  def.addField({"age", "unsigned"});
+  def.addField({"name", TypeName("string")});
+  def.addField({"age", TypeName("unsigned")});
   return def;
 }
 
@@ -34,8 +34,8 @@ TEST_CASE("type definition -- add to node")
 
   SECTION("fields")
   {
-    def.addField({"name", "string"});
-    def.addField({"age", "unsigned"});
+    def.addField({"name", TypeName("string")});
+    def.addField({"age", TypeName("unsigned")});
 
     def.addToNode(node);
 
@@ -48,9 +48,9 @@ TEST_CASE("type definition -- add to node")
 
   SECTION("fields must have different names")
   {
-    def.addField({"name", "string"});
-    REQUIRE_THROWS_AS(def.addField({"name", "unsigned"}), meta::MetaException);
-    REQUIRE_THROWS_WITH(def.addField({"name", "unsigned"}), "Field already exists: 'name'!");
+    def.addField({"name", TypeName("string")});
+    REQUIRE_THROWS_AS(def.addField({"name", TypeName("unsigned")}), meta::MetaException);
+    REQUIRE_THROWS_WITH(def.addField({"name", TypeName("unsigned")}), "Field already exists: 'name'!");
   }
 
   SECTION("can have generic (type) parameters")
@@ -73,13 +73,13 @@ TEST_CASE("type definition -- add to node")
 
   SECTION("specify generics")
   {
-    def.addField({"something", "T"});
+    def.addField({"something", TypeName("T")});
     def.addGeneric("T");
-    const auto& specified = def.specialize({"integer"});
-    REQUIRE(specified.getName() == "Person<integer>");
+    const auto& specified = def.specialize({TypeName("integer")});
+    REQUIRE(specified.getName().get() == "Person<integer>");
     REQUIRE(specified.getGenerics().size() == 0);
     REQUIRE(specified.getFields().size() == def.getFields().size());
-    REQUIRE(specified.getFields().find("something")->second.type == "integer");
+    REQUIRE(specified.getFields().find("something")->second.type.get() == "integer");
   }
 
   SECTION("specify generics for a non-generic definition")
@@ -91,16 +91,16 @@ TEST_CASE("type definition -- add to node")
   SECTION("specify more generics than expected")
   {
     def.addGeneric("T");
-    REQUIRE_THROWS_AS(def.specialize({"T", "U"}), meta::MetaException);
-    REQUIRE_THROWS_WITH(def.specialize({"T", "U"}), "'Person' expected 1 generic(s), but 2 provided!");
+    REQUIRE_THROWS_AS(def.specialize({TypeName("T"), TypeName("U")}), meta::MetaException);
+    REQUIRE_THROWS_WITH(def.specialize({TypeName("T"), TypeName("U")}), "'Person' expected 1 generic(s), but 2 provided!");
   }
 
   SECTION("specify less generics than expected")
   {
     def.addGeneric("T");
     def.addGeneric("U");
-    REQUIRE_THROWS_AS(def.specialize({"T"}), meta::MetaException);
-    REQUIRE_THROWS_WITH(def.specialize({"T"}), "'Person' expected 2 generic(s), but 1 provided!");
+    REQUIRE_THROWS_AS(def.specialize({TypeName("T")}), meta::MetaException);
+    REQUIRE_THROWS_WITH(def.specialize({TypeName("T")}), "'Person' expected 2 generic(s), but 1 provided!");
   }
   // SECTION("specify less generics")
 }
@@ -124,7 +124,7 @@ TEST_CASE("type definition -- from node")
     def.addToNode(node);
 
     const auto& result = meta::TypeDefinition::fromNode(node);
-    REQUIRE(result.getName() == "Person");
+    REQUIRE(result.getName().get() == "Person");
   }
 
   SECTION("to node and back -- with fields")
@@ -135,11 +135,11 @@ TEST_CASE("type definition -- from node")
     def.addToNode(node);
 
     const auto& result = meta::TypeDefinition::fromNode(node);
-    REQUIRE(result.getName() == "Person");
+    REQUIRE(result.getName().get() == "Person");
     REQUIRE(result.getFields().find("name") != result.getFields().end());
-    REQUIRE(result.getFields().find("name")->second.type == "string");
+    REQUIRE(result.getFields().find("name")->second.type.get() == "string");
     REQUIRE(result.getFields().find("age") != result.getFields().end());
-    REQUIRE(result.getFields().find("age")->second.type == "unsigned");
+    REQUIRE(result.getFields().find("age")->second.type.get() == "unsigned");
   }
 
   SECTION("to node and back -- with fields, but removing specifier key from node")
@@ -232,7 +232,7 @@ TEST_CASE("type reference -- from node")
     ref.addToNode(node);
 
     const auto& result = meta::TypeReference::fromNode(node);
-    REQUIRE(result.getTypename() == "Person");
+    REQUIRE(result.getTypename().get() == "Person");
   }
 
   SECTION("to node and back -- but removing the specifer")

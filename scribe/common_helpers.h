@@ -36,7 +36,11 @@ namespace scribe
     struct iterator_adaptor : basic_iterator_adaptor<orig_type>
     {
             using basic_iterator_adaptor<orig_type>::basic_iterator_adaptor;
+            using base = basic_iterator_adaptor<orig_type>;
             using result_type = decltype(std::declval<converter_type>().operator()(std::declval<orig_type>()));
+
+            inline iterator_adaptor operator+(int increment) const
+            { return iterator_adaptor(base::orig + increment); }
 
             result_type operator*()
             {
@@ -46,6 +50,32 @@ namespace scribe
             converter_type converter;
 
     };
+
+    // inspired by ranges
+    template <typename Range, typename Transformation>
+    struct range_view
+    {
+      explicit range_view(const Range& orig)
+        : origRange(orig)
+      {}
+
+      using const_iterator = iterator_adaptor<typename Range::const_iterator, Transformation>;
+
+      const_iterator begin() const
+      { return const_iterator(origRange.begin()); }
+
+      const_iterator end() const
+      { return const_iterator(origRange.end()); }
+      
+      const Range& origRange;
+    };
+
+    template <typename Range, typename Transformation>
+    auto operator|(const Range& range, const Transformation&)
+    {
+      return range_view<Range, Transformation>(range);
+    }
+
 
     struct NonCopyable
     {

@@ -3,6 +3,7 @@
 
 #include <scribe/Node.h>
 #include <scribe/std_polyfill.h> // for MetaConcept
+#include <scribe/TypeName.h>
 #include <map>
 #include <vector>
 
@@ -12,7 +13,6 @@ namespace scribe
   {
     constexpr char metaSpecifier[] = "^^meta^^";
     constexpr char specifierKey[] = "?";
-    using TypeName = std::string;
 
     class MetaException : public ScribeException
     {
@@ -44,12 +44,15 @@ namespace scribe
     class TypeDefinition
     {
         public:
-          using TypeName = std::string;
           using GenericName = std::string;
           using Generics = std::vector<GenericName>;
 
           explicit TypeDefinition(const std::string& defName)
-            : name(defName)
+            : name(TypeName(defName))
+          {}
+
+          explicit TypeDefinition(const TypeName& typeName)
+            : name(typeName)
           {}
 
           struct Field
@@ -66,7 +69,7 @@ namespace scribe
 
           using Fields = std::unordered_map<std::string, Field>;
 
-          inline std::string getName() const
+          inline TypeName getName() const
           { return name; }
 
           void addToNode(Node& node) const;
@@ -88,7 +91,7 @@ namespace scribe
           static TypeDefinition fromNode(const Node& node);
 
         private:
-          std::string name;
+          TypeName name;
           Generics generics;
           // inherits/parents
           Fields fields;
@@ -100,7 +103,9 @@ namespace scribe
     class TypeReference
     {
         public:
-          using TypeName = std::string;
+          explicit TypeReference(const std::string& typeName)
+            : type(TypeName(typeName))
+          {}
 
           explicit TypeReference(const TypeName& typeName)
             : type(typeName)

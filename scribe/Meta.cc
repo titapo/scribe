@@ -40,7 +40,7 @@ void TypeDefinition::addToNode(Node& node) const
 {
   auto meta = std::make_unique<Node>();
   meta->addChild(specifierKey, Entity::create<Leaf<std::string>>("type_definition"));
-  meta->addChild("name", Entity::create<Leaf<std::string>>(name));
+  meta->addChild("name", Entity::create<Leaf<std::string>>(name.get()));
 
   if (!generics.empty())
   {
@@ -58,7 +58,7 @@ void TypeDefinition::addToNode(Node& node) const
     auto fieldsNode = std::make_unique<Node>();
     for (const auto& field : fields)
     {
-      fieldsNode->addChild(field.first, Entity::create<Leaf<std::string>>(field.second.type));
+      fieldsNode->addChild(field.first, Entity::create<Leaf<std::string>>(field.second.type.get()));
     }
       
     node.addChild("fields", std::move(fieldsNode));
@@ -108,7 +108,7 @@ namespace
 
     const auto& fieldsNode = types::NodeType().get(node.getChild("fields"));
     for (const auto& fieldEntry : fieldsNode)
-      def.addField({fieldEntry.first, types::LeafType<std::string>().get(fieldEntry.second).getValue()});
+      def.addField(TypeDefinition::Field(fieldEntry.first, TypeName(types::LeafType<std::string>().get(fieldEntry.second).getValue())));
   }
 }
 
@@ -129,13 +129,21 @@ namespace
   template <typename Range>
   std::string join(const Range& range, const std::string& joiner)
   {
-    if (range.empty())
+    if (range.begin() == range.end()) // empty
       return {};
 
     return std::accumulate(range.begin() + 1, range.end(),
-        range.at(0), [&joiner](const auto& a, const auto& b) -> std::string
+        *(range.begin()), [&joiner](const auto& a, const auto& b) -> std::string
         { return makeString() << a << joiner << b; });
   }
+
+  struct to_underlying
+  {
+    template <typename InputIterator>
+      auto operator()(const InputIterator& iter)
+      { return iter->get(); }
+  };
+
 
   // TODO common
   template <typename Range>
@@ -146,12 +154,12 @@ namespace
 
   TypeDefinition::Field specializeField(const TypeDefinition& original, const TypeDefinition::Field& field, const std::vector<TypeName> specializations)
   {
-    const auto referred = find_in(original.getGenerics(), field.type);
+    const auto referred = find_in(original.getGenerics(), field.type.get());
     if (referred == original.getGenerics().end())
       return {field};
 
     const auto& index = std::distance(original.getGenerics().begin(), referred);
-    return {field.name, specializations.at(index)};
+    return {field.name, TypeName(specializations.at(index))};
   }
   void specializeFields(const TypeDefinition& original, const std::vector<TypeName> specializations, TypeDefinition& specialized)
   {
@@ -159,9 +167,9 @@ namespace
       specialized.addField(specializeField(original, field.second, specializations));
   }
 
-  std::string specializeName(const TypeName& type, const std::vector<TypeName>& specializations)
+  TypeName specializeName(const TypeName& type, const std::vector<TypeName>& specializations)
   {
-    return makeString() << type << "<"<< join(specializations, ", ") << ">";
+    return TypeName(makeString() << type.get() << "<"<< join(specializations | to_underlying(), ", ") << ">");
   }
 
   TypeDefinition specializeTypeDefinition(const TypeDefinition& original, const std::vector<TypeName>& specializations)
@@ -178,7 +186,7 @@ TypeDefinition TypeDefinition::specialize(const std::vector<TypeName>& specializ
     throw MetaException("Cannot specialize a non-generic definition");
   
   if (specializations.size() != generics.size())
-    throw MetaException(makeString() << "'" << getName() << "' expected " << generics.size()
+    throw MetaException(makeString() << "'" << getName().get() << "' expected " << generics.size()
         << " generic(s), but " << specializations.size() << " provided!");
 
   return specializeTypeDefinition(*this, specializations);
@@ -188,7 +196,7 @@ TypeDefinition TypeDefinition::specialize(const std::vector<TypeName>& specializ
 void TypeReference::addToNode(Node& node) const
 {
   auto meta = createMeta("type_ref");
-  meta->addChild("type", Entity::create<Leaf<std::string>>(type));
+  meta->addChild("type", Entity::create<Leaf<std::string>>(type.get()));
   node.addChild(std::string(metaSpecifier), std::move(meta));
 }
 
@@ -199,7 +207,7 @@ TypeReference TypeReference::fromNode(const Node& node)
   return TypeReference(types::LeafType<std::string>().get(meta.getChild("type")).getValue());
 }
 
-TypeReference::TypeName TypeReference::getTypename() const
+TypeName TypeReference::getTypename() const
 {
   return type;
 }

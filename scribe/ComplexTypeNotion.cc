@@ -25,7 +25,7 @@ namespace scribe
             const TypeRegistry& registry)
         {
           auto createField = [&registry](const auto& field)
-            {return Field{field.first, field.second.type, registry.getType(field.second.type)};};
+            {return Field{field.first, field.second.type.get(), registry.getType(field.second.type.get())};};
 
           std::transform(definition.getFields().begin(), definition.getFields().end(),
               std::back_inserter(fields), createField);
@@ -91,8 +91,8 @@ void types::ComplexTypeNotion::Checker::checkReference()
 {
   const auto& ref = meta::TypeReference::fromNode(node);
   if (ref.getTypename() != outer.definition.getName())
-    throw TypeValidationError(makeString() << "'" << outer.definition.getName() << "' passed when '"
-        << ref.getTypename() << "' was expected!");
+    throw TypeValidationError(makeString() << "'" << outer.definition.getName().get() << "' passed when '"
+        << ref.getTypename().get() << "' was expected!");
 }
 
 void types::ComplexTypeNotion::Checker::checkFields(const ValidationContext& context)
@@ -112,7 +112,7 @@ void types::ComplexTypeNotion::Checker::checkExtraFields()
       continue;
 
     if (!containsFieldWithName(outer.fields, child.first))
-      throw TypeValidationError(makeString() << "'" << outer.definition.getName() << "' should not have field named: '"
+      throw TypeValidationError(makeString() << "'" << outer.definition.getName().get() << "' should not have field named: '"
          << child.first << "'!");
   }
 }
@@ -120,7 +120,7 @@ void types::ComplexTypeNotion::Checker::checkExtraFields()
 void types::ComplexTypeNotion::Checker::checkField(const types::ComplexTypeNotion::Field& field, const ValidationContext& context)
 {
   if (!node.hasChild(field.name))
-    throw TypeValidationError(makeString() << "'" << outer.definition.getName() << "' must have field: '"
+    throw TypeValidationError(makeString() << "'" << outer.definition.getName().get() << "' must have field: '"
         << field.name << "' (" << field.typeName << ")!");
 
   checkFieldType(field, context);
@@ -137,7 +137,7 @@ void types::ComplexTypeNotion::Checker::checkFieldType(
   catch(const ScribeException& ex)
   {
     throw TypeValidationError(makeString()
-        << "In " << outer.definition.getName()
+        << "In " << outer.definition.getName().get()
         << " field '" << field.name << "' is not a(n) '" << field.typeName << "'! " << ex.what());
   }
 }
