@@ -18,6 +18,15 @@ const Node& getMeta(const Node& node)
   return types::NodeType().get(meta);
 }
 
+Node& getMeta(Node& node)
+{
+  if (!node.hasChild(metaSpecifier))
+    throw MetaException(makeString() << "Missing meta key!");
+
+  auto& meta = node.getChild(std::string(metaSpecifier));
+  return types::NodeType().get(meta);
+}
+
 void assertMetaSpecifier(const Node& meta, const std::string& expectedSpecifier)
 {
   if (!meta.hasChild(specifierKey))
@@ -36,21 +45,12 @@ std::unique_ptr<Node> createMeta(const std::string& specifier)
   return meta;
 }
 
-void TypeDefinition::addToNode(Node& node) const
+// TODO split smaller parts // hide in cc
+void BasicTypeDefinition::addToNode(Node& node) const
 {
   auto meta = std::make_unique<Node>();
   meta->addChild(specifierKey, Entity::create<Leaf<std::string>>("type_definition"));
   meta->addChild("name", Entity::create<Leaf<std::string>>(getName().get()));
-
-  if (!getGenerics().empty())
-  {
-    auto genericsList = std::make_unique<Array>();
-    for (const auto& generic : getGenerics())
-    {
-      genericsList->append(Entity::create<Leaf<std::string>>(generic));
-    }
-    meta->addChild("generics", std::move(genericsList));
-  }
   node.addChild(std::string(metaSpecifier), std::move(meta));
 
   if (!getFields().empty())
@@ -63,6 +63,11 @@ void TypeDefinition::addToNode(Node& node) const
       
     node.addChild("fields", std::move(fieldsNode));
   }
+}
+
+void TypeDefinition::addToNode(Node& node) const
+{
+  BasicTypeDefinition::addToNode(node);
 }
 
 void BasicTypeDefinition::addField(const BasicTypeDefinition::Field& field)
@@ -81,24 +86,63 @@ void BasicTypeDefinition::addField(BasicTypeDefinition::Field&& field)
   fields.emplace(field.name, std::move(field));
 }
 
-void BasicTypeDefinition::addGeneric(const GenericName& generic)
+namespace
 {
-  if (contains(generics, generic))
-    throw MetaException(makeString() << "'" << generic << "' is repeated!");
+  void assertGenericList(const GenericTypeDefinition::Generics& generics)
+  {
+    if (generics.empty())
+      throw MetaException("GenericTypeDefinition must have at least one generic parameter!");
 
-  generics.push_back(generic);
+    const auto duplicated = find_duplicated(generics);
+    if (duplicated != generics.end())
+        throw MetaException(makeString() << "'" << *duplicated << "' is repeated!");
+  }
 }
+
+GenericTypeDefinition::GenericTypeDefinition(const TypeName& typeName, Generics&& genericList)
+  : BasicTypeDefinition(std::move(typeName))
+  , generics(genericList)
+{
+  assertGenericList(generics);
+} 
+
+GenericTypeDefinition::GenericTypeDefinition(TypeName&& typeName, Generics&& genericList)
+  : BasicTypeDefinition(std::move(typeName))
+  , generics(genericList)
+{
+  assertGenericList(generics);
+} 
+
+void GenericTypeDefinition::addToNode(Node& node) const
+{
+  BasicTypeDefinition::addToNode(node);
+
+  auto genericsList = std::make_unique<Array>();
+  for (const auto& generic : getGenerics())
+  {
+    genericsList->append(Entity::create<Leaf<std::string>>(generic));
+  }
+  getMeta(node).addChild("generics", std::move(genericsList));
+}
+
+const GenericTypeDefinition::Generics& GenericTypeDefinition::getGenerics() const
+{ return generics; }
 
 namespace
 {
-  void loadGenericsFromMeta(BasicTypeDefinition& def, const Node& meta)
+  GenericTypeDefinition::Generics loadGenericsFromMeta(const Node& meta)
   {
     if (!meta.hasChild("generics"))
-      return;
+      throw MetaException("No generics specified!");
 
     const auto& generics = types::ArrayType().get(meta.getChild("generics"));
-    for (const auto& generic : generics)
-      def.addGeneric(types::LeafType<std::string>().get(generic).getValue());
+    GenericTypeDefinition::Generics result;
+
+    // TODO transform?
+    std::transform(generics.begin(), generics.end(), std::back_inserter(result),
+        [](const Entity& name) { return types::LeafType<std::string>().get(name).getValue(); });
+
+    return result;
   }
 
   void loadFieldsFromNode(BasicTypeDefinition& def, const Node& node)
@@ -118,7 +162,18 @@ TypeDefinition TypeDefinition::fromNode(const Node& node)
   assertMetaSpecifier(meta, "type_definition");
   TypeDefinition def(types::LeafType<std::string>().get(meta.getChild("name")).getValue());
 
-  loadGenericsFromMeta(def, meta);
+  loadFieldsFromNode(def, node);
+  return def;
+}
+
+GenericTypeDefinition GenericTypeDefinition::fromNode(const Node& node)
+{
+  const auto& meta = getMeta(node);
+  assertMetaSpecifier(meta, "type_definition");
+  GenericTypeDefinition def(
+      TypeName(types::LeafType<std::string>().get(meta.getChild("name")).getValue()),
+      loadGenericsFromMeta(meta));
+
   loadFieldsFromNode(def, node);
   return def;
 }
@@ -145,7 +200,7 @@ namespace
   };
 
 
-  BasicTypeDefinition::Field specializeField(const BasicTypeDefinition& original, const BasicTypeDefinition::Field& field, const std::vector<TypeName> specializations)
+  BasicTypeDefinition::Field specializeField(const GenericTypeDefinition& original, const BasicTypeDefinition::Field& field, const std::vector<TypeName> specializations)
   {
     const auto referred = find_in(original.getGenerics(), field.type.get());
     if (referred == original.getGenerics().end())
@@ -154,7 +209,7 @@ namespace
     const auto& index = std::distance(original.getGenerics().begin(), referred);
     return {field.name, TypeName(specializations.at(index))};
   }
-  void specializeFields(const BasicTypeDefinition& original, const std::vector<TypeName> specializations, BasicTypeDefinition& specialized)
+  void specializeFields(const GenericTypeDefinition& original, const std::vector<TypeName> specializations, BasicTypeDefinition& specialized)
   {
     for (const auto& field : original.getFields() | pick_second())
       specialized.addField(specializeField(original, field, specializations));
@@ -165,17 +220,17 @@ namespace
     return TypeName(makeString() << type.get() << "<"<< join(specializations | to_underlying(), ", ") << ">");
   }
 
-  BasicTypeDefinition specializeTypeDefinition(const BasicTypeDefinition& original, const std::vector<TypeName>& specializations)
+  TypeDefinition specializeTypeDefinition(const GenericTypeDefinition& original, const std::vector<TypeName>& specializations)
   {
-    BasicTypeDefinition def{specializeName(original.getName(), specializations)};
+    TypeDefinition def{specializeName(original.getName(), specializations)};
     specializeFields(original, specializations, def);
     return def;
   }
 }
 
-BasicTypeDefinition BasicTypeDefinition::specialize(const std::vector<TypeName>& specializations) const
+TypeDefinition GenericTypeDefinition::specialize(const std::vector<TypeName>& specializations) const
 {
-  if (generics.size() == 0) // TODO isGeneric()
+  if (generics.size() == 0) // This is not supposed to happen // THIS IS ALREADY EXCLUDED
     throw MetaException("Cannot specialize a non-generic definition");
   
   if (specializations.size() != generics.size())
@@ -183,7 +238,6 @@ BasicTypeDefinition BasicTypeDefinition::specialize(const std::vector<TypeName>&
         << " generic(s), but " << specializations.size() << " provided!");
 
   return specializeTypeDefinition(*this, specializations);
-
 }
 
 void TypeReference::addToNode(Node& node) const

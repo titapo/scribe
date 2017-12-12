@@ -117,6 +117,18 @@ namespace scribe
     }
 
     template <typename Range>
+    auto find_duplicated(const Range& range)
+    {
+      for (auto it = range.begin(); it != range.end(); ++it)
+      {
+        const auto duplicated = std::find(std::next(it), range.end(), *it);
+        if (duplicated != range.end())
+          return duplicated;
+      }
+      return range.end();
+    }
+
+    template <typename Range>
     bool contains(const Range& range, const typename Range::value_type& needle)
     {
       return find_in(range, needle) != range.end();

@@ -44,9 +44,6 @@ namespace scribe
     class BasicTypeDefinition
     {
         public:
-          using GenericName = std::string;
-          using Generics = std::vector<GenericName>;
-
           explicit BasicTypeDefinition(const std::string& defName)
             : name(TypeName(defName))
           {}
@@ -69,6 +66,8 @@ namespace scribe
 
           using Fields = std::unordered_map<std::string, Field>;
 
+          void addToNode(Node& node) const;
+
           inline TypeName getName() const
           { return name; }
 
@@ -78,18 +77,8 @@ namespace scribe
           {
             return fields;
           }
-
-          void addGeneric(const GenericName& generic);
-
-          const Generics& getGenerics() const
-          { return generics; }
-
-          BasicTypeDefinition specialize(const std::vector<TypeName>& specializations) const; // TODO free function
-
-
         private:
           TypeName name;
-          Generics generics;
           // inherits/parents
           Fields fields;
           // methods
@@ -103,8 +92,29 @@ namespace scribe
         void addToNode(Node& node) const;
         static TypeDefinition fromNode(const Node& node);
     };
-
     static_assert(ImplementsMetaConcept<TypeDefinition>::value, "Expected MetaConcept implementation");
+
+    class GenericTypeDefinition : public BasicTypeDefinition
+    {
+      public:
+        using GenericName = std::string;
+        using Generics = std::vector<GenericName>;
+
+        GenericTypeDefinition(const TypeName& typeName, Generics&& genericList);
+        GenericTypeDefinition(TypeName&& typeName, Generics&& genericList);
+
+        //void addGeneric(const GenericName& generic);
+        const Generics& getGenerics() const;
+
+        void addToNode(Node& node) const;
+        static GenericTypeDefinition fromNode(const Node& node);
+
+        TypeDefinition specialize(const std::vector<TypeName>& specializations) const; // TODO free function
+
+      private:
+        /*const*/Generics generics;
+    };
+
 
     class TypeReference
     {

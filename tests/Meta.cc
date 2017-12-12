@@ -53,10 +53,14 @@ TEST_CASE("type definition -- add to node")
     REQUIRE_THROWS_WITH(def.addField({"name", TypeName("unsigned")}), "Field already exists: 'name'!");
   }
 
+}
+
+TEST_CASE("generic type definition -- add to node")
+{
+  Node node;
   SECTION("can have generic (type) parameters")
   {
-    def.addGeneric("T");
-    def.addGeneric("U");
+    meta::GenericTypeDefinition def(TypeName("Generic"), {"T", "U"});
     def.addToNode(node);
     const auto& meta = types::NodeType().get(node.getChild(meta::metaSpecifier));
     const auto& generics = types::ArrayType().get(meta.getChild("generics"));
@@ -66,43 +70,45 @@ TEST_CASE("type definition -- add to node")
 
   SECTION("generic parameters must have different names")
   {
-    def.addGeneric("T");
-    REQUIRE_THROWS_AS(def.addGeneric("T"), meta::MetaException);
-    REQUIRE_THROWS_WITH(def.addGeneric("T"), "'T' is repeated!");
+    REQUIRE_THROWS_MATCHES(meta::GenericTypeDefinition(TypeName("Generic"), {"T", "T"}),
+        meta::MetaException, WithMessage("'T' is repeated!"));
   }
 
-  SECTION("specify generics")
+  SECTION("generic parameters must have different names") // TODO non-consecutive repeat!
   {
+    REQUIRE_THROWS_MATCHES(meta::GenericTypeDefinition(TypeName("Generic"), {"T", "U", "T"}),
+        meta::MetaException, WithMessage("'T' is repeated!"));
+  }
+
+  SECTION("specify generics") // TODO more generics
+  {
+    meta::GenericTypeDefinition def(TypeName("Generic"), {"T"});
     def.addField({"something", TypeName("T")});
-    def.addGeneric("T");
     const auto& specified = def.specialize({TypeName("integer")});
-    REQUIRE(specified.getName().get() == "Person<integer>");
-    REQUIRE(specified.getGenerics().size() == 0);
+    REQUIRE(specified.getName().get() == "Generic<integer>");
     REQUIRE(specified.getFields().size() == def.getFields().size());
     REQUIRE(specified.getFields().find("something")->second.type.get() == "integer");
   }
 
   SECTION("specify generics for a non-generic definition")
   {
-    REQUIRE_THROWS_AS(def.specialize({}), meta::MetaException);
-    REQUIRE_THROWS_WITH(def.specialize({}), "Cannot specialize a non-generic definition");
+    REQUIRE_THROWS_MATCHES(meta::GenericTypeDefinition(TypeName("Generic"), {}),
+        meta::MetaException, WithMessage("GenericTypeDefinition must have at least one generic parameter!"));
   }
 
   SECTION("specify more generics than expected")
   {
-    def.addGeneric("T");
-    REQUIRE_THROWS_AS(def.specialize({TypeName("T"), TypeName("U")}), meta::MetaException);
-    REQUIRE_THROWS_WITH(def.specialize({TypeName("T"), TypeName("U")}), "'Person' expected 1 generic(s), but 2 provided!");
+    meta::GenericTypeDefinition def(TypeName("Generic"), {"T"});
+    REQUIRE_THROWS_MATCHES(def.specialize({TypeName("T"), TypeName("U")}),
+        meta::MetaException, WithMessage("'Generic' expected 1 generic(s), but 2 provided!"));
   }
 
   SECTION("specify less generics than expected")
   {
-    def.addGeneric("T");
-    def.addGeneric("U");
-    REQUIRE_THROWS_AS(def.specialize({TypeName("T")}), meta::MetaException);
-    REQUIRE_THROWS_WITH(def.specialize({TypeName("T")}), "'Person' expected 2 generic(s), but 1 provided!");
+    meta::GenericTypeDefinition def(TypeName("Generic"), {"T", "U"});
+    REQUIRE_THROWS_MATCHES(def.specialize({TypeName("T")}),
+        meta::MetaException, WithMessage("'Generic' expected 2 generic(s), but 1 provided!"));
   }
-  // SECTION("specify less generics")
 }
 
 #include <scribe/TypeNotion.h>
@@ -172,14 +178,12 @@ TEST_CASE("type definition -- from node")
 
   SECTION("to node and back -- generics")
   {
-    auto def = getPersonDefinition();
-    def.addGeneric("T");
-    def.addGeneric("U");
+    meta::GenericTypeDefinition def(TypeName("Generic"), {"T", "U"});
 
     Node node;
     def.addToNode(node);
 
-    const auto result = meta::TypeDefinition::fromNode(node);
+    const auto result = meta::GenericTypeDefinition::fromNode(node);
     const auto& generics = result.getGenerics();
     REQUIRE(generics.size() == 2);
     REQUIRE(generics.at(0) == "T");
