@@ -2,6 +2,7 @@
 #include <scribe/exception.h>
 #include <scribe/makeString.h>
 #include <scribe/EntityFormatter.h>
+#include <scribe/ComplexTypeNotion.h> // TypeRegistry should not know this
 
 using namespace scribe;
 
@@ -22,7 +23,7 @@ namespace
   };
 }
 
-void TypeRegistry::registerType(const TypeName& name, std::unique_ptr<TypeNotion>&& type)
+void TypeRegistry::registerType(const std::string& name, std::unique_ptr<TypeNotion>&& type)
 {
   if (types.find(name) != types.end())
     throw ScribeException(makeString() << "'" << name << "' is already registered!");
@@ -30,7 +31,7 @@ void TypeRegistry::registerType(const TypeName& name, std::unique_ptr<TypeNotion
   types.emplace(name, std::make_unique<SimpleTypeNotion>(std::move(type)));
 }
 
-void TypeRegistry::registerType(const TypeName& name, std::unique_ptr<RegisterableTypeNotion>&& type)
+void TypeRegistry::registerType(const std::string& name, std::unique_ptr<RegisterableTypeNotion>&& type)
 {
   if (types.find(name) != types.end())
     throw ScribeException(makeString() << "'" << name << "' is already registered!");
@@ -38,13 +39,39 @@ void TypeRegistry::registerType(const TypeName& name, std::unique_ptr<Registerab
   types.emplace(name, std::move(type));
 }
 
-const RegisterableTypeNotion& TypeRegistry::getType(const TypeName& name) const
+void TypeRegistry::registerGeneric(std::unique_ptr<meta::GenericTypeDefinition>&& genericDefinition)
+{
+  generics.emplace(genericDefinition->getName(), std::move(genericDefinition));
+}
+
+const RegisterableTypeNotion& TypeRegistry::getType(const std::string& name) const
 {
   auto found = types.find(name);
   if (found == types.end())
     throw ScribeException(makeString() << "Type '" << name << "' is not registered!");
 
   return *(found->second);
+}
+
+const RegisterableTypeNotion& TypeRegistry::getSpecializedType(const TypeName& name, const Specialization& specialization) const
+{
+  const auto genericDefinition = generics.find(name);
+  if (genericDefinition == generics.end())
+    throw ScribeException(makeString() << "Generic '" << name.get() << "' is not registered!");
+
+  // TODO can we get the name here?
+  const auto concreteDefinition = genericDefinition->second->specialize(specialization);
+
+  const auto& concreteName = concreteDefinition.getName();
+  const auto specialized = specializedTypes.find(concreteName);
+  if (specialized != specializedTypes.end())
+    return *(specialized->second);
+
+  // [iterator, success]
+  const auto emplaceResult = specializedTypes.emplace(concreteName,
+      std::make_unique<types::ComplexTypeNotion>(concreteDefinition, *this));
+
+  return *(emplaceResult.first->second);
 }
 
 void TypeRegistry::validate(const Entity& entity) const

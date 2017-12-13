@@ -45,3 +45,35 @@ TEST_CASE("check")
   }
 
 }
+
+TEST_CASE("supporting generics")
+{
+
+  TypeRegistry registry;
+  auto def = std::unique_ptr<meta::GenericTypeDefinition>(new meta::GenericTypeDefinition(TypeName("MyType"), {"A", "B", "C"}));
+  def->addField({"alpha", TypeName("A")});
+  registry.registerGeneric(std::move(def));
+
+  SECTION("specialize for unregistered")
+  {
+    REQUIRE_THROWS_MATCHES(registry.getSpecializedType(TypeName("notKnown"), {}),
+        ScribeException, WithMessage("Generic 'notKnown' is not registered!"));
+  }
+
+  SECTION("specialize for unknown types")
+  {
+    REQUIRE_THROWS_MATCHES(registry.getSpecializedType(TypeName("MyType"), {TypeName("a"), TypeName("b"), TypeName("c")}),
+        ScribeException, WithMessage("Type 'a' is not registered!"));
+  }
+
+  SECTION("specialize")
+  {
+    registry.registerType("bool", std::make_unique<types::LeafType<bool>>());
+    const auto& concrete = registry.getSpecializedType(TypeName("MyType"), {TypeName("bool"), TypeName("b"), TypeName("c")});
+    Node node;
+    meta::TypeReference("MyType<bool, b, c>").addToNode(node);
+    node.addChild("alpha", Entity::create<Leaf<bool>>(true));
+    concrete.validate(node, {});
+  }
+}
+

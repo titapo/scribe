@@ -41,4 +41,17 @@ namespace scribe
   };
 }
 
+namespace std
+{
+  template<> struct hash<scribe::TypeName>
+  {
+    using argument_type = scribe::TypeName;
+    using result_type = std::size_t;
+    result_type operator()(argument_type const& s) const noexcept
+    {
+      return std::hash<std::string>{}(s.get());
+    }
+  };
+}
+
 #endif

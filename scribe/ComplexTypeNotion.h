@@ -18,8 +18,8 @@ namespace scribe
         using TypeDefinition = meta::TypeDefinition;
 
         explicit ComplexTypeNotion(const TypeDefinition& definition, const TypeRegistry& registry);
-        explicit ComplexTypeNotion(TypeDefinition&& definition, const TypeRegistry& registry);
         void validate(const Entity& entity, const ValidationContext& context) const override;
+        const TypeName& getName() const;
 
       private:
         class Checker;
@@ -32,9 +32,8 @@ namespace scribe
           const RegisterableTypeNotion& type;
         };
         using Fields = std::vector<Field>;
-        using Field = typename Fields::value_type;
 
-        TypeDefinition definition; // TODO it should not be stored by value
+        TypeName name;
         NodeType nodeType;
         Fields fields;
     };
