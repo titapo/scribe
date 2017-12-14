@@ -27,7 +27,7 @@ TEST_CASE("any")
 
   SECTION("instantiate")
   {
-    REQUIRE_THROWS_AS(notion.instantiate(), ScribeException);
+    REQUIRE_THROWS_MATCHES(notion.instantiate(), ScribeException, WithMessage("'Any' cannot be instantiated!"));
   }
 }
 
@@ -42,12 +42,12 @@ TEST_CASE("node")
 
   SECTION("validate array")
   {
-    REQUIRE_THROWS_AS(notion.validate(Array()), ScribeException);
+    REQUIRE_THROWS_MATCHES(notion.validate(Array()), ScribeException, WithMessage("not a Node"));
   }
 
   SECTION("validate leaf")
   {
-    REQUIRE_THROWS_AS(notion.validate(Leaf<int>(1)), ScribeException);
+    REQUIRE_THROWS_MATCHES(notion.validate(Leaf<int>(1)), ScribeException, WithMessage("not a Node"));
   }
 
   SECTION("instantiate")
@@ -62,12 +62,12 @@ TEST_CASE("node")
 
   SECTION("get array")
   {
-    REQUIRE_THROWS_AS(notion.get(Array()), ScribeException);
+    REQUIRE_THROWS_MATCHES(notion.get(Array()), ScribeException, WithMessage("not a Node"));
   }
 
   SECTION("get leaf")
   {
-    REQUIRE_THROWS_AS(notion.get(Leaf<int>(1)), ScribeException);
+    REQUIRE_THROWS_MATCHES(notion.get(Leaf<int>(1)), ScribeException, WithMessage("not a Node"));
   }
 }
 
@@ -77,7 +77,7 @@ TEST_CASE("array")
 
   SECTION("validate node")
   {
-    REQUIRE_THROWS_AS(notion.validate(Node()), ScribeException);
+    REQUIRE_THROWS_MATCHES(notion.validate(Node()), ScribeException, WithMessage("not an Array"));
   }
 
   SECTION("validate array")
@@ -87,7 +87,7 @@ TEST_CASE("array")
 
   SECTION("validate leaf")
   {
-    REQUIRE_THROWS_AS(notion.validate(Leaf<int>(1)), ScribeException);
+    REQUIRE_THROWS_MATCHES(notion.validate(Leaf<int>(1)), ScribeException, WithMessage("not an Array"));
   }
 
   SECTION("instantiate")
@@ -97,7 +97,7 @@ TEST_CASE("array")
 
   SECTION("get node")
   {
-    REQUIRE_THROWS_AS(notion.get(Node()), ScribeException);
+    REQUIRE_THROWS_MATCHES(notion.get(Node()), ScribeException, WithMessage("not an Array"));
   }
 
   SECTION("get array")
@@ -107,7 +107,7 @@ TEST_CASE("array")
 
   SECTION("get leaf")
   {
-    REQUIRE_THROWS_AS(notion.get(Leaf<int>(1)), ScribeException);
+    REQUIRE_THROWS_MATCHES(notion.get(Leaf<int>(1)), ScribeException, WithMessage("not an Array"));
   }
 }
 
@@ -117,12 +117,12 @@ TEST_CASE("leaf base")
 
   SECTION("validate node")
   {
-    REQUIRE_THROWS_AS(notion.validate(Node()), ScribeException);
+    REQUIRE_THROWS_MATCHES(notion.validate(Node()), ScribeException, WithMessage("not a Leaf"));
   }
 
   SECTION("validate array")
   {
-    REQUIRE_THROWS_AS(notion.validate(Array()), ScribeException);
+    REQUIRE_THROWS_MATCHES(notion.validate(Array()), ScribeException, WithMessage("not a Leaf"));
   }
 
   SECTION("validate leaf")
@@ -133,7 +133,7 @@ TEST_CASE("leaf base")
 
   SECTION("instantiate")
   {
-    REQUIRE_THROWS_AS(notion.instantiate(), ScribeException);
+    REQUIRE_THROWS_MATCHES(notion.instantiate(), ScribeException, WithMessage("'Leaf' cannot be instantiated!"));
   }
 }
 
@@ -143,38 +143,38 @@ TEST_CASE("leaf")
 
   SECTION("validate node")
   {
-    REQUIRE_THROWS_AS(notion.validate(Node()), ScribeException);
+    REQUIRE_THROWS_MATCHES(notion.validate(Node()), ScribeException, WithMessage("not a Leaf"));
   }
 
   SECTION("validate array")
   {
-    REQUIRE_THROWS_AS(notion.validate(Array()), ScribeException);
+    REQUIRE_THROWS_MATCHES(notion.validate(Array()), ScribeException, WithMessage("not a Leaf"));
   }
 
   SECTION("validate leaf")
   {
     REQUIRE_NOTHROW(notion.validate(Leaf<int>(1)));
-    REQUIRE_THROWS_AS(notion.validate(Leaf<bool>(true)), ScribeException);
+    REQUIRE_THROWS_MATCHES(notion.validate(Leaf<bool>(true)), ScribeException, WithMessage("Not a proper leaf!"));
   }
 
   SECTION("instantiate")
   {
-    REQUIRE_THROWS_AS(notion.instantiate(), ScribeException);
+    REQUIRE_THROWS_MATCHES(notion.instantiate(), ScribeException, WithMessage("Not implemented yet!"));
   }
 
   SECTION("get node")
   {
-    REQUIRE_THROWS_AS(notion.get(Node()), ScribeException);
+    REQUIRE_THROWS_MATCHES(notion.get(Node()), ScribeException, WithMessage("Not a proper leaf!"));
   }
 
   SECTION("get array")
   {
-    REQUIRE_THROWS_AS(notion.get(Array()), ScribeException);
+    REQUIRE_THROWS_MATCHES(notion.get(Array()), ScribeException, WithMessage("Not a proper leaf!"));
   }
 
   SECTION("get leaf")
   {
     REQUIRE_NOTHROW(notion.get(Leaf<int>(1)));
-    REQUIRE_THROWS_AS(notion.get(Leaf<bool>(false)), ScribeException);
+    REQUIRE_THROWS_MATCHES(notion.get(Leaf<bool>(false)), ScribeException, WithMessage("Not a proper leaf!"));
   }
 }

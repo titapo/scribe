@@ -10,7 +10,7 @@ TEST_CASE("BasicPathFormat")
 
   SECTION("parse empty")
   {
-    REQUIRE_THROWS_AS(format.parseElement(""), ScribeException);
+    REQUIRE_THROWS_MATCHES(format.parseElement(""), ScribeException, WithMessage("Cannot parse path element"));
   }
 
   SECTION("parse childelement from string")

@@ -19,8 +19,7 @@ TEST_CASE("complex type tests")
         meta::TypeDefinition def("node");
         types::ComplexTypeNotion notion{def, registry};
 
-        REQUIRE_THROWS_AS(notion.validate(Node(), ctx), meta::MetaException);
-        REQUIRE_THROWS_WITH(notion.validate(Node(), ctx), "Missing meta key!");
+        REQUIRE_THROWS_MATCHES(notion.validate(Node(), ctx), meta::MetaException, WithMessage("Missing meta key!"));
     }
 
     SECTION("validate node with other reference")
@@ -31,8 +30,9 @@ TEST_CASE("complex type tests")
 
         meta::TypeReference("other_ref").addToNode(node);
 
-        REQUIRE_THROWS_AS(notion.validate(node, ctx), ScribeException); // TODO ValidationError
-        REQUIRE_THROWS_WITH(notion.validate(node, ctx), "Validation failed! 'node' passed when 'other_ref' was expected!");
+        REQUIRE_THROWS_MATCHES(notion.validate(node, ctx),
+            ScribeException, WithMessage("Validation failed! 'node' passed when 'other_ref' was expected!"));
+        // TODO ValidationError
     }
 
     SECTION("validate node with same reference")
@@ -55,16 +55,16 @@ TEST_CASE("complex type tests")
         Node node;
         meta::TypeReference("Person").addToNode(node);
 
-        REQUIRE_THROWS_AS(notion.validate(node, ctx), ScribeException); // Validation failed
-        REQUIRE_THROWS_WITH(notion.validate(node, ctx), "Validation failed! 'Person' must have field: 'name' (string)!");
+        REQUIRE_THROWS_MATCHES(notion.validate(node, ctx),
+            ScribeException, WithMessage("Validation failed! 'Person' must have field: 'name' (string)!"));
     }
 
     SECTION("validate node with non-registered typed field")
     {
         meta::TypeDefinition def("Person");
         def.addField({"name", TypeName("mystring")});
-        REQUIRE_THROWS_AS(types::ComplexTypeNotion(def, registry), ScribeException);
-        REQUIRE_THROWS_WITH(types::ComplexTypeNotion(def, registry), "Type 'mystring' is not registered!");
+        REQUIRE_THROWS_MATCHES(types::ComplexTypeNotion(def, registry),
+            ScribeException, WithMessage("Type 'mystring' is not registered!"));
     }
 
     SECTION("validate node with wrong typed field")
@@ -77,9 +77,8 @@ TEST_CASE("complex type tests")
         meta::TypeReference("Person").addToNode(node);
         node.addChild("name", Entity::create<Leaf<int>>(1));
 
-        REQUIRE_THROWS_AS(notion.validate(node, ctx), TypeValidationError);
-        REQUIRE_THROWS_WITH(notion.validate(node, ctx),
-            "Validation failed! In Person field 'name' is not a(n) 'string'! Not a proper leaf!");
+        REQUIRE_THROWS_MATCHES(notion.validate(node, ctx),
+            TypeValidationError, WithMessage("Validation failed! In Person field 'name' is not a(n) 'string'! Not a proper leaf!"));
     }
 
     SECTION("validate node with wrong typed field")
@@ -131,9 +130,8 @@ TEST_CASE("complex type tests")
         node.addChild("name", Entity::create<Leaf<std::string>>("Joe"));
         node.addChild("weight", Entity::create<Leaf<int>>(123));
 
-        REQUIRE_THROWS_AS(notion.validate(node, ctx), TypeValidationError);
-        REQUIRE_THROWS_WITH(notion.validate(node, ctx),
-            "Validation failed! 'Person' should not have field named: 'weight'!");
+        REQUIRE_THROWS_MATCHES(notion.validate(node, ctx),
+            TypeValidationError, WithMessage("Validation failed! 'Person' should not have field named: 'weight'!"));
     }
 
     SECTION("allow extra fields in case of Lazy validation")

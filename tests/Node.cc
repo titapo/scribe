@@ -14,8 +14,8 @@ TEST_CASE("empty node")
 TEST_CASE("get nonexisting child")
 {
     Node node;
-    REQUIRE_THROWS_AS(node.getChild("xxx"), NoSuchChild);
-    REQUIRE_THROWS_WITH(node.getChild("xxx"), "No such child in node: xxx");
+    REQUIRE_THROWS_MATCHES(node.getChild("xxx"),
+        NoSuchChild, WithMessage("No such child in node: xxx"));
 }
 
 TEST_CASE("remove nonexisting child")
