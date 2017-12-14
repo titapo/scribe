@@ -59,18 +59,27 @@ lib: build-lib
 BIN_TESTDIR=bin/tests
 TEST_SRC=$(wildcard tests/*.cc)
 TEST_NAMES=$(notdir $(basename $(TEST_SRC)))
-TEST_EXEC=$(addprefix $(BIN_TESTDIR)/,$(TEST_NAMES))
+#TEST_EXEC=$(addprefix $(BIN_TESTDIR)/,$(TEST_NAMES))
+TEST_EXEC=$(addprefix $(BIN_TESTDIR)/,test)
+TEST_OBJECTS=$(addsuffix .o,$(addprefix $(BIN_TESTDIR)/,$(TEST_NAMES)))
 TEST_INCLUDE=-I.
 
 create-bin-testdir:
 	mkdir -p $(BIN_TESTDIR)
 
+d:
+	@echo $(TEST_OBJECTS)
+	@echo $(TEST_EXEC)
+
+$(TEST_EXEC): $(TEST_OBJECTS)
+	$(CXX) $(CXXFLAGS) $(TEST_INCLUDE) -L$(LIB_LIBDIR) -l$(SCRIBE_NAME) $(TEST_OBJECTS) -o $@
+
 .PHONY: build-tests
 build-tests: create-bin-testdir $(TEST_EXEC)
 
-$(BIN_TESTDIR)/%: tests/%.cc $(LIB_LIBDIR)/$(SONAME)
+$(BIN_TESTDIR)/%.o: tests/%.cc
 	@echo Building $@
-	$(CXX) $(CXXFLAGS) $(TEST_INCLUDE) -L$(LIB_LIBDIR) -l$(SCRIBE_NAME) $^ -o $@
+	$(CXX) $(CXXFLAGS) $(TEST_INCLUDE) -c $^ -o $@
 
 .PHONY: check
 check: create-bin-testdir build-tests

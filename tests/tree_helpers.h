@@ -7,7 +7,7 @@
 
 using namespace scribe;
 
-std::unique_ptr<Entity> createTreeNode()
+inline std::unique_ptr<Entity> createTreeNode()
 {
     auto root = Entity::create<Node>();
     auto& rootRef = dynamic_cast<Node&>(*root);
