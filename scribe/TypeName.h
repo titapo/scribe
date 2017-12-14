@@ -39,6 +39,8 @@ namespace scribe
     private:
         const std::string name;
   };
+
+  bool checkTypeName(const std::string& candidate);
 }
 
 namespace std
