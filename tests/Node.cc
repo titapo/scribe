@@ -2,37 +2,52 @@
 #include <scribe/Node.h>
 #include <scribe/Leaf.h>
 #include <scribe/EntityProcessor.h>
+#include <scribe/TypeNotion.h>
 
 using namespace scribe;
 
-TEST_CASE("empty node")
+SCENARIO("empty node")
 {
+  GIVEN("a node")
+  {
     Node node;
-    REQUIRE(node.size() == 0);
-}
+    WHEN("in initial state")
+    {
+      THEN("it's size is zero")
+      {
+        REQUIRE(node.size() == 0);
+      }
 
-TEST_CASE("get nonexisting child")
-{
-    Node node;
-    REQUIRE_THROWS_MATCHES(node.getChild("xxx"),
-        NoSuchChild, WithMessage("No such child in node: xxx"));
-}
+      THEN("it has no child")
+      {
+        REQUIRE_THROWS_MATCHES(node.getChild("xxx"),
+            NoSuchChild, WithMessage("No such child in node: xxx"));
+      }
+      THEN("removing a child no throws")
+      {
+        REQUIRE_NOTHROW(node.removeChild("xxx"));
+      }
+    }
 
-TEST_CASE("remove nonexisting child")
-{
-    Node node;
-    REQUIRE_NOTHROW(node.removeChild("xxx"));
-}
+    WHEN("a child added")
+    {
+      node.addChild("name", Entity::create<Leaf<int>>(12));
+      THEN("size increased")
+      {
+        REQUIRE(node.size() == 1);
+      }
 
-TEST_CASE("add child to node")
-{
-    Node node;
-    node.addChild("name", Entity::create<Leaf<int>>(12));
-    REQUIRE(node.size() == 1);
-    REQUIRE(dynamic_cast<Leaf<int>&>(node.getChild("name")).getValue() == 12);
+      THEN("child can be accessed")
+      {
+        REQUIRE(types::LeafType<int>().get(node.getChild("name")).getValue() == 12);
+      }
 
-    REQUIRE(node.getEntry("name").first == "name");
-    REQUIRE(dynamic_cast<Leaf<int>&>(node.getEntry("name").second).getValue() == 12);
+      THEN("the entry can be accessed")
+      {
+        REQUIRE(types::LeafType<int>().get(node.getEntry("name").second).getValue() == 12);
+      }
+    }
+  }
 }
 
 TEST_CASE("remove child from node")
@@ -62,7 +77,7 @@ TEST_CASE("iterating through node")
     int sum = 0;
     for (const auto& child : node)
     {
-        sum += dynamic_cast<Leaf<int>&>(child.second).getValue();
+        sum += types::LeafType<int>().get(child.second).getValue();
     }
 
     REQUIRE(sum == 6);
@@ -82,7 +97,7 @@ TEST_CASE("iterating through const node")
     int sum = 0;
     for (const auto& child : node)
     {
-        sum += dynamic_cast<Leaf<int>&>(child.second).getValue();
+        sum += types::LeafType<int>().get(child.second).getValue();
     }
 
     REQUIRE(sum == 6);
