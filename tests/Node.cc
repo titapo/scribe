@@ -23,9 +23,9 @@ SCENARIO("empty node")
         REQUIRE_THROWS_MATCHES(node.getChild("xxx"),
             NoSuchChild, WithMessage("No such child in node: xxx"));
       }
-      THEN("removing a child no throws")
+      THEN("removing a child returns nullptr")
       {
-        REQUIRE_NOTHROW(node.removeChild("xxx"));
+        REQUIRE(node.removeChild("xxx") == nullptr);
       }
     }
 
@@ -57,7 +57,8 @@ TEST_CASE("remove child from node")
     node.addChild("age", Entity::create<Leaf<int>>(15));
     REQUIRE(node.size() == 2);
 
-    node.removeChild("name");
+    const auto removed = node.removeChild("name");
+    REQUIRE(types::LeafType<int>().get(*removed).getValue() == 12);
     REQUIRE(!node.hasChild("name"));
     REQUIRE(node.size() == 1);
 }

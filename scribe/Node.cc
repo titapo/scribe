@@ -41,13 +41,15 @@ Node::WeakEntry Node::getEntry(const std::string& name) const
     return WeakEntry(name, getChild(name));
 }
 
-void Node::removeChild(const std::string& name)
+std::unique_ptr<Entity> Node::removeChild(const std::string& name)
 {
     auto element = children.find(name);
     if (element == children.end())
-        return;
+        return {nullptr};
 
+    auto removed = std::move(element->second);
     children.erase(element);
+    return removed;
 }
 
 void Node::processBy(EntityProcessor& processor)

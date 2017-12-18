@@ -54,7 +54,7 @@ namespace scribe
             Entity& getChild(const std::string& name) const;
             WeakEntry getEntry(const std::string& name) const;
 
-            void removeChild(const std::string& name);
+            std::unique_ptr<Entity> removeChild(const std::string& name);
 
             void processBy(EntityProcessor& processor) override;
             void processBy(EntityProcessor& processor) const override;
