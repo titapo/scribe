@@ -46,9 +46,14 @@ void TypeRegistry::registerGeneric(std::unique_ptr<meta::GenericTypeDefinition>&
 
 const RegisterableTypeNotion& TypeRegistry::getType(const std::string& name) const
 {
-  auto found = types.find(name);
+  return getType(TypeName(name));
+}
+
+const RegisterableTypeNotion& TypeRegistry::getType(const TypeName& name) const
+{
+  auto found = types.find(name.get());
   if (found == types.end())
-    throw ScribeException(makeString() << "Type '" << name << "' is not registered!");
+    throw UnknownTypeError(makeString() << "Type '" << name.get() << "' is not registered!");
 
   return *(found->second);
 }
@@ -57,7 +62,7 @@ const RegisterableTypeNotion& TypeRegistry::getSpecializedType(const TypeName& n
 {
   const auto genericDefinition = generics.find(name);
   if (genericDefinition == generics.end())
-    throw ScribeException(makeString() << "Generic '" << name.get() << "' is not registered!");
+    throw UnknownTypeError(makeString() << "Generic '" << name.get() << "' is not registered!");
 
   // TODO can we get the name here?
   const auto concreteDefinition = genericDefinition->second->specialize(specialization);
@@ -88,4 +93,28 @@ void TypeRegistry::validate(const Entity& entity) const
     }
   }
   throw ScribeException(makeString() << "Validation failed for: " << printEntity(entity));
+}
+
+void TypeRegistry::validate(const Entity& entity, const ValidationContext& context) const
+{
+  if (!context.expected.get().empty())
+  {
+    try
+    {
+      const auto& expectedType = getType(context.expected);
+      expectedType.validate(entity, context);
+      return;
+    }
+    catch (const UnknownTypeError& ex)
+    {
+      throw TypeValidationError(makeString() << ex.what());
+    }
+    catch (const ScribeException& ex)
+    {
+      throw TypeValidationError(makeString() << "Expected '" << context.expected.get()
+          << "'! Reason: '" << ex.what() << "', Got: '" << printEntity(entity) << "'");
+    }
+  }
+
+  validate(entity);
 }

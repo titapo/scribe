@@ -46,6 +46,21 @@ TEST_CASE("check")
 
 }
 
+// TODO scrictness/lazy
+TEST_CASE("expected type")
+{
+  TypeRegistry registry;
+  registry.registerType("bool", std::make_unique<types::LeafType<bool>>());
+  registry.registerType("node", std::make_unique<types::NodeType>());
+
+  REQUIRE_THROWS_MATCHES(registry.validate(*Entity::create<Leaf<bool>>(true), ValidationContext(TypeName("node"))),
+      TypeValidationError, WithMessage("Validation failed! Expected 'node'! Reason: 'not a Node', Got: 'true'"));
+
+  //registry.validate(*Entity::create<Leaf<bool>>(true), ValidationContext(TypeName("xxx")));
+  REQUIRE_THROWS_MATCHES(registry.validate(*Entity::create<Leaf<bool>>(true), ValidationContext(TypeName("xxx"))),
+      TypeValidationError, WithMessage("Validation failed! Type 'xxx' is not registered!"));
+}
+
 TEST_CASE("supporting generics")
 {
 

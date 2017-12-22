@@ -45,5 +45,11 @@ namespace scribe
         private:
             value_type value;
     };
+
+    template <>
+    inline std::ostream& Leaf<bool>::toStream(std::ostream& stream) const
+    {
+        return stream << std::string(value ? "true" : "false");
+    }
 }
 #endif

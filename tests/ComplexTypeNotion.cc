@@ -145,6 +145,6 @@ TEST_CASE("complex type tests")
         node.addChild("name", Entity::create<Leaf<std::string>>("Joe"));
         node.addChild("weight", Entity::create<Leaf<int>>(123));
 
-        REQUIRE_NOTHROW(notion.validate(node, {ValidationContext::Strictness::Lazy}));
+        REQUIRE_NOTHROW(notion.validate(node, ValidationContext(ValidationContext::Strictness::Lazy)));
     }
 }

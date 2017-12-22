@@ -9,6 +9,11 @@
 
 namespace scribe
 {
+  class UnknownTypeError : public ScribeException
+  {
+    public:
+      using ScribeException::ScribeException;
+  };
   class TypeRegistry
   {
     public:
@@ -17,12 +22,14 @@ namespace scribe
       void registerType(const std::string& name, std::unique_ptr<RegisterableTypeNotion>&& type);
       void registerGeneric(std::unique_ptr<meta::GenericTypeDefinition>&& genericDefinition);
       const RegisterableTypeNotion& getType(const std::string& name) const;
+      const RegisterableTypeNotion& getType(const TypeName& name) const;
 
       const RegisterableTypeNotion& getSpecializedType(const TypeName& name, const Specialization& specialization) const;
 
       // TODO validation context
       // TODO how to handle validation context (eg. type hint, expected type, skip meta, lazy/strict etc.)
       void validate(const Entity& entity) const;
+      void validate(const Entity& entity, const ValidationContext& context) const;
 
     private:
       std::unordered_map<std::string, std::unique_ptr<RegisterableTypeNotion>> types;

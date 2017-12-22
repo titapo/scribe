@@ -2,6 +2,7 @@
 #define SCRIBE_REGISTERABLETYPENOTION_H_INCLUDED
 
 #include <scribe/exception.h>
+#include <scribe/TypeName.h>
 
 namespace scribe
 {
@@ -15,7 +16,19 @@ namespace scribe
       Strict,
       Lazy
     };
+
+    ValidationContext() = default;
+
+    explicit ValidationContext(Strictness strict)
+      : strictness(strict)
+    {}
+
+    explicit ValidationContext(const TypeName& expectedType)
+      : expected(expectedType)
+    {}
+
     Strictness strictness = Strictness::Strict;
+    TypeName expected{""}; // TODO optional
   };
 
   class TypeValidationError : public ScribeException
