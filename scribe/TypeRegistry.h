@@ -17,6 +17,8 @@ namespace scribe
   class TypeRegistry
   {
     public:
+      using Types = std::unordered_map<std::string, std::unique_ptr<RegisterableTypeNotion>>;
+      using TypeEntry = std::pair<TypeName, std::reference_wrapper<RegisterableTypeNotion>>;
       using Specialization = std::vector<TypeName>; // init list?
       void registerType(const std::string& name, std::unique_ptr<TypeNotion>&& type);
       void registerType(const std::string& name, std::unique_ptr<RegisterableTypeNotion>&& type);
@@ -32,7 +34,7 @@ namespace scribe
       void validate(const Entity& entity, const ValidationContext& context) const;
 
     private:
-      std::unordered_map<std::string, std::unique_ptr<RegisterableTypeNotion>> types;
+      Types types;
       std::unordered_map<TypeName, std::unique_ptr<meta::GenericTypeDefinition>> generics;
       mutable std::unordered_map<TypeName, std::unique_ptr<RegisterableTypeNotion>> specializedTypes; // cache
   };

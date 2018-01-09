@@ -91,4 +91,3 @@ TEST_CASE("supporting generics")
     concrete.validate(node, {});
   }
 }
-

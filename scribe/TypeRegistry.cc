@@ -21,6 +21,14 @@ namespace
     private:
       std::unique_ptr<TypeNotion> wrapped{nullptr};
   };
+
+  struct toTypeEntry
+  {
+    auto operator()(const TypeRegistry::Types::const_iterator& iter)
+    {
+      return TypeRegistry::TypeEntry(TypeName(iter->first), *(iter->second));
+    }
+  };
 }
 
 void TypeRegistry::registerType(const std::string& name, std::unique_ptr<TypeNotion>&& type)
