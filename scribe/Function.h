@@ -113,11 +113,11 @@ namespace scribe
         if (!std::equal(parameters.begin(), parameters.end(), signature.parameters.begin()))
           return false;
 
-        const auto isTypeRegistered = [&registry](const TypeName& t)
+        const auto isTypeRegistered = [&](const TypeName& type)
         {
           try
           {
-            registry.getType(t);
+            registry.getType(type);
             return true;
           }
           catch (const UnknownTypeError&)
@@ -126,7 +126,20 @@ namespace scribe
           }
         };
 
-        return std::all_of(parameters.begin(), parameters.end(), isTypeRegistered); // this may be checked on creation of the function
+        // this may be checked on creation of the function
+        if (!std::all_of(parameters.begin(), parameters.end(), isTypeRegistered))
+          return false;
+
+        return isTypeRegistered(signature.returnType);
+      }
+
+      TypeName results(const Signature::ParameterList& parameters, const TypeRegistry& registry) const
+      {
+        if (!isInvokableWith(parameters, registry))
+          throw ScribeException(makeString() << "This method is not invokable with [" << join(parameters | toUnderlying(), ", ")<< "] !");
+        // TODO add reason
+
+        return signature.returnType;
       }
 
       auto invoke(const TypeRegistry& registry, Signature::ArgumentList&& arguments) const
@@ -155,7 +168,7 @@ namespace scribe
       auto invokeImpl(Signature::ArgumentList&& arguments, std::true_type) const
       {
         std::tuple<std::decay_t<Arguments>...> argTuple;
-        detail::moveElementsToTuple(std::move(arguments), argTuple);
+        ::detail::moveElementsToTuple(std::move(arguments), argTuple);
         return applyImpl(std::move(argTuple), std::is_same<ReturnType, void>());
       }
 

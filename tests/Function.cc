@@ -74,3 +74,26 @@ SCENARIO("no-operation")
   const auto f = FunctionFactory<>()({"f", {}, TypeName("unit")}, [](){});
   f.invoke(registry, {}); // ? unit
 }
+
+SCENARIO("get result type without call")
+{
+  TypeRegistry registry;
+
+  const auto f = FunctionFactory<std::unique_ptr<Entity>&&>()(
+      {"length", {TypeName("string")}, TypeName("unsigned")},
+      [](std::unique_ptr<Entity>&& str)
+      { return Entity::create<Leaf<int>>(types::LeafType<std::string>().get(*str).getValue().length()); });
+
+  REQUIRE(!f.isInvokableWith({TypeName("string")}, registry));
+  REQUIRE_THROWS_MATCHES(f.results({TypeName("string")}, registry),
+      ScribeException, WithMessage("This method is not invokable with [string] !"));
+
+  registry.registerType("string", std::make_unique<types::LeafType<std::string>>());
+  REQUIRE(!f.isInvokableWith({TypeName("string")}, registry));
+  REQUIRE_THROWS_MATCHES(f.results({TypeName("string")}, registry),
+      ScribeException, WithMessage("This method is not invokable with [string] !"));
+
+  registry.registerType("unsigned", std::make_unique<types::LeafType<unsigned>>());
+  REQUIRE(f.isInvokableWith({TypeName("string")}, registry));
+  REQUIRE(f.results({TypeName("string")}, registry).get() == TypeName("unsigned").get());
+}

@@ -41,6 +41,14 @@ namespace scribe
   };
 
   bool checkTypeName(const std::string& candidate);
+
+  // iterator adaptor for underlying type
+  struct toUnderlying
+  {
+    template <typename InputIterator>
+      auto operator()(const InputIterator& iter)
+      { return iter->get(); }
+  };
 }
 
 namespace std

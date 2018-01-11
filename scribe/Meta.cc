@@ -4,7 +4,6 @@
 #include <scribe/TypeNotion.h>
 #include <scribe/makeString.h>
 #include <algorithm>
-#include <numeric> // for accumulate
 
 using namespace scribe;
 using namespace scribe::meta;
@@ -180,26 +179,6 @@ GenericTypeDefinition GenericTypeDefinition::fromNode(const Node& node)
 
 namespace
 {
-  // TODO move to makeString()?
-  template <typename Range>
-  std::string join(const Range& range, const std::string& joiner)
-  {
-    if (range.begin() == range.end()) // empty
-      return {};
-
-    return std::accumulate(range.begin() + 1, range.end(),
-        *(range.begin()), [&joiner](const auto& a, const auto& b) -> std::string
-        { return makeString() << a << joiner << b; });
-  }
-
-  struct to_underlying
-  {
-    template <typename InputIterator>
-      auto operator()(const InputIterator& iter)
-      { return iter->get(); }
-  };
-
-
   BasicTypeDefinition::Field specializeField(const GenericTypeDefinition& original, const BasicTypeDefinition::Field& field, const std::vector<TypeName> specializations)
   {
     const auto referred = find_in(original.getGenerics(), field.type.get());
@@ -217,7 +196,7 @@ namespace
 
   TypeName specializeName(const TypeName& type, const std::vector<TypeName>& specializations)
   {
-    return TypeName(makeString() << type.get() << "<"<< join(specializations | to_underlying(), ", ") << ">");
+    return TypeName(makeString() << type.get() << "<"<< join(specializations | toUnderlying(), ", ") << ">");
   }
 
   TypeDefinition specializeTypeDefinition(const GenericTypeDefinition& original, const std::vector<TypeName>& specializations)
