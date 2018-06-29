@@ -97,3 +97,48 @@ SCENARIO("get result type without call")
   REQUIRE(f.isInvokableWith({TypeName("string")}, registry));
   REQUIRE(f.results({TypeName("string")}, registry).get() == TypeName("unsigned").get());
 }
+
+namespace
+{
+  struct NumberRangeIterator
+  {
+    NumberRangeIterator(int from, int to)
+      : begin(from)
+      , end(to)
+      , current(begin)
+    {}
+
+    int next()
+    {
+      return current++;
+    }
+    bool hasNext()
+    {
+      return current != end;
+    }
+
+    const int begin;
+    const int end;
+    int current;
+  };
+}
+
+SCENARIO("iterator")
+{
+  TypeRegistry registry;
+
+  registry.registerType("number_range", std::make_unique<types::LeafType<NumberRangeIterator>>());
+  registry.registerType("int", std::make_unique<types::LeafType<int>>());
+
+  const auto next = FunctionFactory<std::unique_ptr<Leaf<NumberRangeIterator>>&>()(
+      {"next", {TypeName("number_range")}, TypeName("int")},
+      [](std::unique_ptr<Leaf<NumberRangeIterator>>& iter)
+      { return Entity::create<Leaf<int>>(types::LeafType<NumberRangeIterator>().get(*iter).getValue().next()); });
+
+  REQUIRE(next.isInvokableWith({TypeName("number_range")}, registry));
+  REQUIRE(next.results({TypeName("number_range")}, registry).get() == TypeName("int").get());
+  const auto number_range = Entity::create<Leaf<NumberRangeIterator>>(1, 3);
+  const auto result = next.invoke(registry, {std::move(number_range)});
+  REQUIRE(types::LeafType<int>().get(*result).getValue() == 1);
+
+}
