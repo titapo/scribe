@@ -45,9 +45,9 @@ namespace scribe
   // iterator adaptor for underlying type
   struct toUnderlying
   {
-    template <typename InputIterator>
-      auto operator()(const InputIterator& iter)
-      { return iter->get(); }
+    template <typename ValueType>
+    auto operator()(const ValueType& value)
+    { return value.get(); }
   };
 }
 

@@ -29,15 +29,15 @@ namespace scribe
 
       void extend(const PathElement& element);
 
-      template <typename IteratorType>
       struct ToWeak
       {
-          weak_element_type operator()(const IteratorType& iter)
-          { return {*(iter->first), iter->second}; }
+          template <typename ValueType>
+          weak_element_type operator()(const ValueType& value)
+          { return {*(value.first), value.second}; }
       };
 
-      using iterator = iterator_adaptor<container_type::iterator, ToWeak<container_type::iterator>>;
-      using const_iterator = iterator_adaptor<container_type::const_iterator, ToWeak<container_type::const_iterator>>;
+      using iterator = iterator_adaptor<container_type::iterator, ToWeak>;
+      using const_iterator = iterator_adaptor<container_type::const_iterator, ToWeak>;
 
       inline iterator begin()
       { return iterator(elements.begin()); }

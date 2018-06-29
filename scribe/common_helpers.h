@@ -37,16 +37,30 @@ namespace scribe
              >
     struct iterator_adaptor : basic_iterator_adaptor<orig_type>
     {
-            using basic_iterator_adaptor<orig_type>::basic_iterator_adaptor;
+        public:
             using base = basic_iterator_adaptor<orig_type>;
-            using result_type = decltype(std::declval<converter_type>().operator()(std::declval<orig_type>()));
+            using value_type = decltype(*std::declval<orig_type>());
+            using result_type = decltype(std::declval<converter_type>().operator()(std::declval<value_type>()));
+
+            // constructor
+            using base::basic_iterator_adaptor;
+
+            iterator_adaptor(orig_type original, converter_type&& c)
+              : base(original)
+              , converter(std::move(c))
+            {}
+
+            iterator_adaptor(orig_type original, const converter_type& c)
+              : base(original)
+              , converter(c)
+            {}
 
             inline iterator_adaptor operator+(int increment) const
             { return iterator_adaptor(base::orig + increment); }
 
             result_type operator*()
             {
-              return converter(basic_iterator_adaptor<orig_type>::orig);
+              return converter(*(base::orig));
             }
         private:
             converter_type converter;
@@ -57,34 +71,41 @@ namespace scribe
     template <typename Range, typename Transformation>
     struct range_view
     {
-      explicit range_view(const Range& orig)
+      range_view(const Range& orig, Transformation&& tr)
         : origRange(orig)
+        , transformation(std::move(tr))
+      {}
+
+      range_view(const Range& orig, const Transformation& tr)
+        : origRange(orig)
+        , transformation(tr)
       {}
 
       using const_iterator = iterator_adaptor<typename Range::const_iterator, Transformation>;
 
       const_iterator begin() const
-      { return const_iterator(origRange.begin()); }
+      { return const_iterator(origRange.begin(), transformation); }
 
       const_iterator end() const
-      { return const_iterator(origRange.end()); }
+      { return const_iterator(origRange.end(), transformation); }
       
       const Range& origRange;
+      Transformation transformation;
     };
 
     template <typename Range, typename Transformation>
-    auto operator|(const Range& range, const Transformation&)
+    auto operator|(const Range& range, Transformation&& transformation)
     {
-      return range_view<Range, Transformation>(range);
+      return range_view<Range, Transformation>(range, std::forward<Transformation>(transformation));
     }
 
     // some common view adaptors
     template <size_t N>
     struct pick_nth
     {
-      template <typename Iterator>
-      auto operator()(const Iterator& iter)
-      { return std::get<N>(*iter); }
+      template <typename ValueType>
+      auto operator()(const ValueType& value)
+      { return std::get<N>(value); }
     };
 
     using pick_first = pick_nth<0>;

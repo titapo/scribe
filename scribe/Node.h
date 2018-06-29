@@ -25,15 +25,15 @@ namespace scribe
 
             std::size_t size() const;
 
-            template <typename IteratorType>
             struct ToWeakEntry
             {
-                WeakEntry operator()(const IteratorType& iter)
-                { return WeakEntry(iter->first, *(iter->second)); }
+                template <typename ValueType>
+                WeakEntry operator()(const ValueType& value)
+                { return WeakEntry(value.first, *(value.second)); }
             };
 
-            using iterator = iterator_adaptor<container_type::iterator, ToWeakEntry<container_type::iterator>>;
-            using const_iterator = iterator_adaptor<container_type::const_iterator, ToWeakEntry<container_type::const_iterator>>;
+            using iterator = iterator_adaptor<container_type::iterator, ToWeakEntry>;
+            using const_iterator = iterator_adaptor<container_type::const_iterator, ToWeakEntry>;
 
             void addChild(OwnerEntry&& entry);
             void addChild(const std::string& name, std::unique_ptr<Entity> child);

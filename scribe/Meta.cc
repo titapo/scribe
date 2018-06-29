@@ -62,6 +62,8 @@ void BasicTypeDefinition::addToNode(Node& node) const
       
     node.addChild("fields", std::move(fieldsNode));
   }
+
+  node.addChild(std::string(metaSpecifier), std::move(meta));
 }
 
 void TypeDefinition::addToNode(Node& node) const
