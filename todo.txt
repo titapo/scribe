@@ -1,0 +1,57 @@
+meta specifiers
+
+...
+  __meta__:
+    __specifier__: type_definition/type_declaration
+    name: MyType
+    inherits/parents: []  # list of parents
+  fields:
+     name:
+       type: string
+       default: ""  # optional
+  methods:
+    - __meta__:
+       __specifier__: method
+      name: addOne
+      arguments:
+        - number: int
+      returns: int
+      body:
+        number + 1
+    - __meta__:
+       __specifier__: function
+       name: getNameLength
+       arguments: []
+       returns: unsigned
+       body: length(.name)
+     
+  __meta__:
+    __specifier__: streamfunction
+    name: map
+    arguments:
+      - f: callable
+    returns: auto # ???
+    body: ???
+
+
+Expression
+ <expression> = <entity> | <function> | <path>
+ <entity> = <literal> | ???
+ <literal> = <string> | <integer> | <float> | <boolean>
+ <string> = ".*"
+ <integer> = \d+
+ <float> = \d+\.\d*
+ <boolean> = true | false
+ <function> = <function-identifier>(<function-arguments>)
+ <function-identifier> = <function-name> | <type-name>
+ <function-name> = [a-zA-z]+[a-zA-z0-9_]*
+ <type-name> = [a-zA-z]+[a-zA-z0-9_]*
+ <function-arguments> = <function-argument>* splitted-by ,
+ <function-argument> = <expression>
+
+ has a result, which is an entity
+ primitives are leaves
+ eg.
+  1 + 2 -> operator+(int, int) -> int
+  1 + "apple" -> ERROR!
+
