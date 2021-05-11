@@ -4,6 +4,8 @@
 #include <type_traits>
 
 //polyfill
+// TODO remove this header
+/*
 namespace std
 {
   template <typename... Ts>
@@ -12,5 +14,6 @@ namespace std
   template <class T, class U>
   constexpr bool is_same_v = is_same<T, U>::value;
 }
+*/
 
 #endif

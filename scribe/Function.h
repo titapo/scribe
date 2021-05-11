@@ -6,8 +6,9 @@
 #include <scribe/makeString.h>
 
 // polyfill
-namespace std
+namespace detail
 {
+  // TODO remove this
   template <typename...>
   using void_t = void;
 
@@ -15,13 +16,14 @@ namespace std
   struct is_invocable : std::false_type {};
 
   template <typename Callable>
-  struct is_invocable<Callable, void, void_t<result_of_t<Callable>>> : std::true_type {};
+  struct is_invocable<Callable, void, void_t<std::result_of_t<Callable>>> : std::true_type {};
 
   template <typename Callable, typename... Args>
   auto invoke(Callable&& f, Args&&... arguments)
   {
     return std::forward<Callable>(f)(std::forward<Args>(arguments)...);
   }
+  /*
 
   namespace detail
   {
@@ -38,6 +40,7 @@ namespace std
     return detail::apply_impl(std::forward<Callable>(f), std::forward<Tuple>(t),
         std::make_index_sequence<std::tuple_size<std::remove_reference_t<Tuple>>::value>());
   }
+  */
 }
 namespace detail
 {
@@ -211,7 +214,7 @@ namespace scribe
     template <typename FunctionType>
     auto operator()(Signature&& signature, FunctionType&& wrappedFunction)
     {
-      static_assert(std::is_invocable<FunctionType(Arguments...)>::value, "Not invocable by the given parameter list!");
+      static_assert(detail::is_invocable<FunctionType(Arguments...)>::value, "Not invocable by the given parameter list!");
       using ReturnType = std::result_of_t<FunctionType(Arguments...)>;
       return Function<FunctionType, ReturnType, Arguments...>(std::move(signature), std::move(wrappedFunction));
     }

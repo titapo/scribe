@@ -25,10 +25,10 @@ SCENARIO("function -- get parameter")
   GIVEN("add function for ints")
   {
     auto wrapped = 
-      [](std::unique_ptr<Entity>&& lhs, std::unique_ptr<Entity>&& rhs)
+      [](std::unique_ptr<Entity> lhs, std::unique_ptr<Entity> rhs)
       { return Entity::create<Leaf<int>>(types::LeafType<int>().get(*lhs).getValue() + types::LeafType<int>().get(*rhs).getValue()); };
 
-    const auto f = FunctionFactory<std::unique_ptr<Entity>&&, std::unique_ptr<Entity>&&>()(
+    const auto f = FunctionFactory<std::unique_ptr<Entity>, std::unique_ptr<Entity>>()(
         {"add", {TypeName("int"), TypeName("int")}, TypeName("int")},
         std::move(wrapped)
         );
