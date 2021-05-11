@@ -21,3 +21,13 @@ Entity& Tree::getCurrent() const
 {
   return current.getLast();
 }
+
+const PathTrace& Tree::getTrace() const
+{
+  return current;
+}
+
+PathTrace& Tree::getTrace()
+{
+  return current;
+}

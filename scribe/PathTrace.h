@@ -29,6 +29,12 @@ namespace scribe
 
       void extend(const PathElement& element);
 
+      // resets to root
+      void reset();
+
+      // like 'up' one level
+      void drop();
+
       struct ToWeak
       {
           template <typename ValueType>

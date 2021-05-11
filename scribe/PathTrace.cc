@@ -18,3 +18,14 @@ void PathTrace::extend(const PathElement& element)
 {
   emplace(element.clonePtr(), element.evaluate(getLast()));
 }
+
+void PathTrace::drop()
+{
+  if (!elements.empty())
+    elements.pop_back();
+}
+
+void PathTrace::reset()
+{
+  elements.clear();
+}

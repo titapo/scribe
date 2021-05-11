@@ -17,6 +17,8 @@ namespace scribe
     public:
       using ElementPtr = PathElement::Ptr;
       using Elements = std::vector<ElementPtr>;
+      using iterator = typename Elements::iterator;
+      using const_iterator = typename Elements::const_iterator;
 
       explicit Path(Elements&& newElements);
 
@@ -28,6 +30,18 @@ namespace scribe
 
       std::string toString() const;
       std::ostream& toStream(std::ostream& ostr) const;
+
+      inline iterator begin()
+      { return elements.begin(); }
+
+      inline const_iterator begin() const
+      { return elements.begin(); }
+
+      inline iterator end()
+      { return elements.end(); }
+
+      inline const_iterator end() const
+      { return elements.end(); }
 
     private:
       Elements elements;

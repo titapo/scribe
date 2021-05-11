@@ -4,6 +4,7 @@
 #include <scribe/PathElement.h>
 #include <scribe/Entity.h>
 #include <memory>
+#include <string>
 
 namespace scribe
 {

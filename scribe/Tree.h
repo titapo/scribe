@@ -17,6 +17,9 @@ namespace scribe
       Entity& getRoot() const;
       Entity& getCurrent() const;
 
+      const PathTrace& getTrace() const;
+      PathTrace& getTrace();
+
     private:
       std::unique_ptr<Entity> root;
       PathTrace current;
