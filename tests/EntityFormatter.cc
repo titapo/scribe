@@ -53,7 +53,7 @@ TEST_CASE("display multi-element node")
     node.addChild("string", Entity::create<Leaf<std::string>>("apple"));
     node.addChild("double", Entity::create<Leaf<double>>(12.34));
     formatter.display(node);
-    REQUIRE(str.str() == "{\n  double: 12.34\n  integer: 100\n  string: apple\n}");
+    REQUIRE(str.str() == "{\n  double: 12.34\n  string: apple\n  integer: 100\n}");
 }
 
 TEST_CASE("display nested node")
