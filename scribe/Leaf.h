@@ -2,6 +2,7 @@
 #define SCRIBE_LEAF_H_INCLUDED
 
 #include <scribe/Entity.h>
+#include <string>
 
 namespace scribe
 {
@@ -26,6 +27,11 @@ namespace scribe
             explicit Leaf(value_type&& initial)
                 : value(std::move(initial))
             {}
+
+            void setValue(const value_type& newValue)
+            {
+                value = newValue;
+            }
 
             void setValue(value_type&& newValue)
             {
