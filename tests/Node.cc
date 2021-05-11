@@ -21,7 +21,7 @@ SCENARIO("empty node")
       THEN("it has no child")
       {
         REQUIRE_THROWS_MATCHES(node.getChild("xxx"),
-            NoSuchChild, WithMessage("No such child in node: xxx"));
+            NoSuchChild, WithMessage("Cannot access child! No such child in node: xxx"));
       }
       THEN("removing a child returns nullptr")
       {

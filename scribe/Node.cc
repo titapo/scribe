@@ -24,6 +24,23 @@ bool Node::hasChild(const std::string& name) const
   return children.find(name) != children.end();
 }
 
+std::unique_ptr<Entity> Node::setChild(const std::string& name, std::unique_ptr<Entity> child)
+{
+  try
+  {
+    // TODO atomicity?
+    auto old = std::move(children.at(name));
+    children.at(name) = std::move(child);
+    return old;
+  }
+  catch (const std::out_of_range&)
+  {
+    throw NoSuchChild(makeString() << "Cannot set child! No such child in node: " << name);
+  }
+
+  return nullptr;
+}
+
 Entity& Node::getChild(const std::string& name) const
 {
     try
@@ -32,7 +49,7 @@ Entity& Node::getChild(const std::string& name) const
     }
     catch (const std::out_of_range&)
     {
-        throw NoSuchChild(makeString() << "No such child in node: " << name);
+        throw NoSuchChild(makeString() << "Cannot access child! No such child in node: " << name);
     }
 }
 

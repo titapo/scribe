@@ -1,5 +1,6 @@
 #include <tests/common.h>
 
+#include <scribe/Array.h>
 #include <scribe/Node.h>
 #include <scribe/Leaf.h>
 #include <scribe/Command.h>
@@ -43,6 +44,45 @@ SCENARIO("add child command", "[AddChildCommand]")
     const auto result = command.execute(node);
     REQUIRE(result.status == Command::Result::Status::Failure);
     REQUIRE(result.message == "Cannot add child! 'foo' already exists!");
+  }
+}
+
+SCENARIO("append command", "[AppendCommand]")
+{
+  GIVEN("a command")
+  {
+    AppendCommand command(Entity::create<Leaf<std::string>>("alma"));
+
+    WHEN("executed on a node")
+    {
+      Node node;
+      /// TODO this throws an exception but it should return an error
+      /// const auto result = command.execute(node);
+      // THEN("it fails")
+      // {
+      //   REQUIRE(result.status == Command::Result::Status::Failure);
+      //   REQUIRE(result.message == "asddd");
+      //   REQUIRE(!node.size() == 0);
+      // }
+    }
+
+    WHEN("executed on an empty array")
+    {
+      Array array;
+      const auto result = command.execute(array);
+      THEN("it succeeded")
+      {
+        REQUIRE(result.status == Command::Result::Status::Success);
+      }
+
+      THEN("element added")
+      {
+        REQUIRE(array.size() == 1);
+        REQUIRE(types::LeafType<std::string>().get(array.getChild(0)).getValue() == "alma");
+      }
+
+      // TODO revert?
+    }
   }
 }
 
@@ -133,6 +173,50 @@ SCENARIO("Rename child", "[RenameChildCommand]")
       REQUIRE(node.hasChild("foo"));
       REQUIRE(node.hasChild("new"));
       REQUIRE(result.message == "Cannot rename 'foo' to 'new': already has 'new' child!");
+    }
+  }
+}
+
+SCENARIO("update child value", "[UpdateChildValueCommand]")
+{
+  // Currently it does not checks if the new entity has the same type or not
+  GIVEN("a update-child-value command")
+  {
+    UpdateChildValueCommand command("name", Entity::create<Leaf<std::string>>("Joe"));
+    WHEN("it is executed on an empty node")
+    {
+      Node node;
+      const auto result = command.execute(node);
+      THEN("it fails")
+      {
+        REQUIRE(result.status == Command::Result::Status::Failure);
+        REQUIRE(result.message == "Cannot update child! 'name' does not exist!");
+      }
+    }
+
+    WHEN("it is executed a node with proper child")
+    {
+      Node node;
+      node.addChild("name", Entity::create<Leaf<std::string>>("OldJoe"));
+      const auto result = command.execute(node);
+      THEN("command succeded")
+      {
+        REQUIRE(result.status == Command::Result::Status::Success);
+      }
+
+      THEN("child value updated")
+      {
+        REQUIRE(node.hasChild("name"));
+        REQUIRE(types::LeafType<std::string>().get(node.getChild("name")).getValue() == "Joe");
+      }
+
+      THEN("it can be reverted")
+      {
+        REQUIRE(result.reverseCommand);
+        result.reverseCommand->execute(node);
+        REQUIRE(node.hasChild("name"));
+        REQUIRE(types::LeafType<std::string>().get(node.getChild("name")).getValue() == "OldJoe");
+      }
     }
   }
 }

@@ -1,5 +1,6 @@
 #include <scribe/Command.h>
 #include <scribe/TypeNotion.h>
+#include <scribe/Array.h>
 #include <scribe/Node.h>
 #include <scribe/makeString.h>
 
@@ -56,6 +57,49 @@ Command::Result RenameChildCommand::execute(Entity& entity)
   auto&& removed = node.removeChild(oldName);
   node.addChild(newName, std::move(removed));
   return Result::successful(std::make_unique<RenameChildCommand>(newName, oldName));
+}
+
+UpdateChildValueCommand::UpdateChildValueCommand(const std::string& p_name, std::unique_ptr<Entity> p_newValue)
+  : name(p_name)
+  , newValue(std::move(p_newValue))
+{}
+
+Command::Result UpdateChildValueCommand::execute(Entity& entity)
+{
+  if (!newValue)
+    return Result::failed(makeString() << "Cannot add invalid child, named '" << name << "'!");
+
+  Node& node = types::NodeType().get(entity);
+  if (!node.hasChild(name))
+    return Result::failed(makeString() << "Cannot update child! '" << name << "' does not exist!");
+
+  auto oldValue = node.setChild(name, std::move(newValue));
+  return Result::successful(std::make_unique<UpdateChildValueCommand>(name, std::move(oldValue)));
+}
+
+AppendCommand::AppendCommand(std::unique_ptr<Entity>&& entity)
+  : child(std::move(entity))
+{
+}
+
+Command::Result AppendCommand::execute(Entity& entity)
+{
+  if (!child)
+    return Result::failed(makeString() << "Cannot append invalid child!");
+
+  // TODO this should be returned as a failure, not as an exception
+  try
+  {
+    Array& array = types::ArrayType().get(entity);
+
+    array.append(std::move(child));
+    // TODO implement removeElement for Array
+    return Result::successful(nullptr);
+  }
+  catch (const ScribeException& ex)
+  {
+    return Result::failed(makeString() << "Cannot append element! " << ex.what());
+  }
 }
 
 CommandList::CommandList(Commands&& commandsToExecute)

@@ -5,6 +5,7 @@
 
 #include <functional>
 #include <list>
+#include <string>
 
 namespace scribe
 {
@@ -93,6 +94,26 @@ namespace scribe
       const std::string oldName;
       const std::string newName;
   };
+
+  class UpdateChildValueCommand : public Command
+  {
+    public:
+      UpdateChildValueCommand(const std::string& name, std::unique_ptr<Entity> newValue);
+      Result execute(Entity& entity) override;
+    private:
+      const std::string name;
+      std::unique_ptr<Entity> newValue;
+  };
+
+  class AppendCommand : public Command
+  {
+    public:
+      AppendCommand(std::unique_ptr<Entity>&& childEntity);
+      Result execute(Entity& entity) override;
+    private:
+      std::unique_ptr<Entity> child;
+  };
+
 
   class CommandList : public Command
   {

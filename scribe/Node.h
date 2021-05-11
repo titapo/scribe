@@ -37,6 +37,7 @@ namespace scribe
 
             void addChild(OwnerEntry&& entry);
             void addChild(const std::string& name, std::unique_ptr<Entity> child);
+            std::unique_ptr<Entity> setChild(const std::string& name, std::unique_ptr<Entity> child);
 
             inline iterator begin()
             { return iterator(children.begin()); }

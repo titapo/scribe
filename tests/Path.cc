@@ -37,7 +37,7 @@ TEST_CASE("checkit")
   SECTION("get nonexisting child of a node")
   {
     elements.push_back(std::make_unique<Child>("foo"));
-    REQUIRE_THROWS_MATCHES(Path{std::move(elements)}.evaluate(*tree), NoSuchChild, WithMessage("No such child in node: foo"));
+    REQUIRE_THROWS_MATCHES(Path{std::move(elements)}.evaluate(*tree), NoSuchChild, WithMessage("Cannot access child! No such child in node: foo"));
   }
 }
 
