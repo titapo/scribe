@@ -3,6 +3,7 @@
 
 #include <scribe/exception.h>
 #include <scribe/TypeName.h>
+#include <memory>
 
 namespace scribe
 {
@@ -43,6 +44,7 @@ namespace scribe
   {
     public:
       virtual void validate(const Entity& entity, const ValidationContext& context) const = 0;
+      virtual std::unique_ptr<Entity> instantiate() const = 0;
 
       ~RegisterableTypeNotion() = default;
   };

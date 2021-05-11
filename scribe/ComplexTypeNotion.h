@@ -20,6 +20,7 @@ namespace scribe
         explicit ComplexTypeNotion(const TypeDefinition& definition, const TypeRegistry& registry);
         void validate(const Entity& entity, const ValidationContext& context) const override;
         const TypeName& getName() const;
+        std::unique_ptr<Entity> instantiate() const override;
 
       private:
         class Checker;

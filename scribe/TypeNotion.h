@@ -81,7 +81,7 @@ namespace scribe
 
         std::unique_ptr<Entity> instantiate() override
         {
-          throw ScribeException("Not implemented yet!");
+          return Entity::create<Leaf<T>>(T{});
         }
 
         Leaf<T>& get(Entity& entity) const

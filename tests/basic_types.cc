@@ -159,7 +159,7 @@ TEST_CASE("leaf")
 
   SECTION("instantiate")
   {
-    REQUIRE_THROWS_MATCHES(notion.instantiate(), ScribeException, WithMessage("Not implemented yet!"));
+    REQUIRE(notion.instantiate() != nullptr);
   }
 
   SECTION("get node")

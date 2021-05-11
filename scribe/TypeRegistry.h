@@ -25,6 +25,8 @@ namespace scribe
       void registerGeneric(std::unique_ptr<meta::GenericTypeDefinition>&& genericDefinition);
       const RegisterableTypeNotion& getType(const std::string& name) const;
       const RegisterableTypeNotion& getType(const TypeName& name) const;
+      const RegisterableTypeNotion* getTypePtr(const std::string& name) const;
+      const RegisterableTypeNotion* getTypePtr(const TypeName& name) const;
 
       const RegisterableTypeNotion& getSpecializedType(const TypeName& name, const Specialization& specialization) const;
 

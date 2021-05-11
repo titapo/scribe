@@ -66,6 +66,11 @@ const TypeName& types::ComplexTypeNotion::getName() const
   return name;
 }
 
+std::unique_ptr<Entity> types::ComplexTypeNotion::instantiate() const
+{
+  throw ScribeException("ComplexTypeNotion::instantiate is not implemented yet!");
+}
+
 void types::ComplexTypeNotion::validate(const Entity& entity, const ValidationContext& context) const
 {
   nodeType.validate(entity);

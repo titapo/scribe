@@ -18,6 +18,15 @@ namespace
       void validate(const Entity& entity, const ValidationContext&) const override
       { wrapped->validate(entity); }
 
+      std::unique_ptr<Entity> instantiate() const override
+      {
+        if (!wrapped)
+        {
+          return nullptr;
+        }
+        return wrapped->instantiate();
+      }
+
     private:
       std::unique_ptr<TypeNotion> wrapped{nullptr};
   };
@@ -64,6 +73,20 @@ const RegisterableTypeNotion& TypeRegistry::getType(const TypeName& name) const
     throw UnknownTypeError(makeString() << "Type '" << name.get() << "' is not registered!");
 
   return *(found->second);
+}
+
+const RegisterableTypeNotion* TypeRegistry::getTypePtr(const std::string& name) const
+{
+  return getTypePtr(TypeName(name));
+}
+
+const RegisterableTypeNotion* TypeRegistry::getTypePtr(const TypeName& name) const
+{
+  auto found = types.find(name.get());
+  if (found == types.end())
+    return nullptr;
+
+  return found->second.get();
 }
 
 const RegisterableTypeNotion& TypeRegistry::getSpecializedType(const TypeName& name, const Specialization& specialization) const
