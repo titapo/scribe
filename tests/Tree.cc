@@ -1,5 +1,5 @@
-#include <tests/catch.hpp>
-#include <tests/tree_helpers.h>
+#include <catch2/catch.hpp>
+#include "tree_helpers.h"
 
 #include <scribe/TypeNotion.h>
 #include <scribe/Tree.h>

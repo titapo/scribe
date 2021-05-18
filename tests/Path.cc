@@ -1,5 +1,5 @@
-#include <tests/common.h>
-#include <tests/tree_helpers.h>
+#include "common.h"
+#include "tree_helpers.h"
 #include <scribe/Path.h>
 
 using namespace scribe;

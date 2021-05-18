@@ -1,0 +1,27 @@
+
+add_library(scribe)
+
+function(add_scribe_object name)
+  add_library(${name} OBJECT ${name}.cc)
+  target_include_directories(${name} PUBLIC ../) # FIXME make include/scribe directory
+  target_link_libraries(scribe PUBLIC ${name})
+  target_compile_features(${name} PUBLIC cxx_std_17)
+endfunction()
+
+add_scribe_object(Array)
+add_scribe_object(Command)
+add_scribe_object(ComplexTypeNotion)
+add_scribe_object(EntityFormatter)
+add_scribe_object(Function)
+add_scribe_object(Leaf)
+add_scribe_object(Meta)
+add_scribe_object(Node)
+add_scribe_object(Path)
+add_scribe_object(PathElement)
+add_scribe_object(PathFormat)
+add_scribe_object(PathTrace)
+add_scribe_object(RegisterableTypeNotion)
+add_scribe_object(Tree)
+add_scribe_object(TypeName)
+add_scribe_object(TypeNotion)
+add_scribe_object(TypeRegistry)

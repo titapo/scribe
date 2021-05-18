@@ -1,4 +1,5 @@
-#include <tests/catch.hpp>
+#include <catch2/catch.hpp>
+#include <sstream>
 
 // move to test header
 struct ExceptionMessageChecker : public Catch::MatcherBase<std::exception>
